@@ -9,11 +9,10 @@ def process_input(expression_file=None, database_names_file=None, database_index
     genes, expression_profile=get_expression_profile(expression_level,expression_bins,input_format,output_format) 
     if database_names_file and database_index_file:
         db_names=get_names(database_names_file)
-        db_indexes=get_indexes_2f(database_index_file, db_names)
-        db_profiles=get_db_profiles(db_indexes, genes)
+        db_profiles=get_profiles_2f(database_index_file,db_names, genes)
     elif database_index_file:
         db_indexes=get_indexes_1f(database_index_file)
-        db_profiles=get_db_profiles(db_indexes, genes)
+        db_profiles=get_profiles_1f(db_indexes, genes)
         db_names={item:item for item in db_profiles.keys()}
     if filter_redundant:
         db_profiles=non_redundancy_sort_pre(db_profiles)
@@ -43,10 +42,10 @@ def statistical_testing(cmi_dic,expression_profile, db_profiles, abundance_profi
         cmi_output=non_redundancy_sort_post(cmi_output,db_profiles)
     return cmi_output
 
-def visualize_output(cmi_output,db_profiles, db_names, draw_bins):
-    number=50 if len(cmi_output)>50 else len(cmi_output)
-    top_cmi=sorted(cmi_output, key=lambda x: cmi_output[x], reverse=True)[:number]
+def visualize_output(cmi_output,db_profiles, db_names, draw_bins, max_draw_output):
+    number=max_draw_output if len(cmi_output)>=max_draw_output else len(cmi_output)
+    top_cmi=sorted(cmi_output, key=lambda x: cmi_output[x], reverse=True)
     p_values={}
-    for name in top_cmi:
+    for name in top_cmi[:number]:
         p_values[db_names[name]]=get_p_values(db_profiles[name],draw_bins)
     draw_heatmap(p_values)

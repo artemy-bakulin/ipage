@@ -74,17 +74,6 @@ def get_names(db_names_file):
             db_names[name]=' '.join(line.split()[1:-1])+'; '+name
     return db_names
 
-def get_indexes_2f(db_index_file,db_names):
-    db_indexes={name:[] for name in db_names}        
-    with open(db_index_file) as f:
-        lines = filter(None, (line.rstrip() for line in f))
-        for line in lines:
-            els=line.split()
-            for el in els[1:]:
-                if 'http://' not in el: 
-                    db_indexes[el].append(els[0])
-        return db_indexes
-
 def get_indexes_1f(db_file):
     db_indexes={}
     with open(db_file) as f:
@@ -93,8 +82,25 @@ def get_indexes_1f(db_file):
             db_indexes[line.split('\t')[0]]=list(filter(lambda x:'http://' not in x, line.split('\t')[2:]))
     return db_indexes
 
-def get_db_profiles(indexes, genes):
+def get_profiles_1f(indexes, genes):
     profiles={}
     for name in indexes:
+        #print(indexes)
         profiles[name]=np.array([1 if gene in indexes[name] else 0 for gene in genes])
     return profiles
+
+def get_profiles_2f(db_index_file,db_names, genes):
+    x=np.zeros((len(db_names), len( genes)), dtype='i1')
+    gene_number=dict(zip(genes,range(len(genes))))
+    ann_number=dict(zip(db_names.keys(),range(len(db_names))))
+    with open(db_index_file) as f:
+        lines = filter(None, (line.rstrip() for line in f))
+        for line in lines:
+            ids=line.split()
+            transcript=ids[0]
+            if transcript in genes:
+                for id_ in ids[1:]:
+                    if id_ in db_names.keys():
+                        x[ann_number[id_]][gene_number[transcript]]=1
+    x=dict(zip(db_names.keys(),x))
+    return x
