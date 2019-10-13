@@ -99,13 +99,6 @@ The output consists of two files:
 
 1)The list of significant pathways with CMI and z-score.
 
-GO:1901796	0.002433775522417747	-3347
-
-GO:0016323	0.0024746985140273736	-2834
-
-GO:0000785	0.002607180652429264	-3176
-
-
 2)The heatmap with top hits
 
 <img src="bladder.jpg" width="400">
