@@ -86,6 +86,6 @@ The output consists of two files:
 
 2)The heatmap with top hits
 
-<img src="heatmap.jpg" width="400">
+<img src="bladder.jpg" width="400">
 
 
