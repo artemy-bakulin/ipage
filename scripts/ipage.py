@@ -53,6 +53,7 @@ if __name__ == '__main__':
     draw_bins = args.draw_bins
     child_unique_genes = 0.2
     parent_unique_genes = 0.4
+    min_pathway_length = 6
     filter_redundant = args.filter_redundant
     max_draw_output = args.max_draw_output
     first_col_is_genes = args.first_col_is_genes
@@ -62,7 +63,7 @@ if __name__ == '__main__':
 
     if args.preprocess:
         body.preprocess_db(database_names_file, first_col_is_genes, database_index_file, filter_redundant,
-                           child_unique_genes, parent_unique_genes)
+                           min_pathway_length, child_unique_genes, parent_unique_genes)
     if expression_file and database_index_file:
         output_name = args.expression_file.split('/')[-1].split('.')[0]
         t = time.time()

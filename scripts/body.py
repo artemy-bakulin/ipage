@@ -7,7 +7,8 @@ import numpy as np
 import pickle
 
 
-def preprocess_db(database_names_file, first_col_is_genes, database_index_file, filter_redundant, child_unique_genes,
+def preprocess_db(database_names_file, first_col_is_genes, database_index_file, filter_redundant, min_pathway_length,
+                  child_unique_genes,
                   parent_unique_genes):
     database_name = database_index_file.split('/')[-1].split('.')[0]
     db_file = '%s.ipage.pickle' % database_name
@@ -17,6 +18,7 @@ def preprocess_db(database_names_file, first_col_is_genes, database_index_file, 
 
     if filter_redundant:
         db_names, db_annotations, db_profiles = filter_db.non_redundancy_sort_pre(db_names, db_annotations, db_profiles,
+                                                                                  min_pathway_length,
                                                                                   child_unique_genes,
                                                                                   parent_unique_genes)
     with open(db_file, 'wb') as f:
