@@ -86,6 +86,6 @@ The output consists of two files:
 
 2)The heatmap with top hits
 
-<img src="heatmap.jpg" width="100">
+<img src="heatmap.jpg" width="400">
 
 
