@@ -18,19 +18,19 @@ if __name__ == '__main__':
     parser.add_argument('-e_sep', '--separator_in_expression_file', type=str, default='\t',
                         help='The type of the separator in expression file')
 
-    parser.add_argument('-e_bins', '--expression_bins', type=int, default=10,
-                        help='The number of the expression bins')
-    parser.add_argument('-s_bins', '--sum_bins', type=int, default=3,
-                        help='The number of bins in the sum profile')
-    parser.add_argument('-d_bins', '--draw_bins', type=int, default=15,
-                        help='The number of the bins in the heatmap')
-
     parser.add_argument('-db_format', '--database_format', type=str,
                         help='The database format')
     parser.add_argument('-e_format', '--expression_file_format', type=str,
                         help='The expression file format')
 
-    parser.add_argument('-max_draw', '--max_draw_output', type=int, default=100,
+    parser.add_argument('-e_bins', '--expression_bins', type=int, default=10,
+                        help='The number of the expression bins')
+    parser.add_argument('-s_bins', '--sum_bins', type=int, default=3,
+                        help='The number of bins in the sum profile')
+    parser.add_argument('-h_bins', '--draw_bins', type=int, default=15,
+                        help='The number of the bins in the heatmap')
+
+    parser.add_argument('-max_draw', '--max_draw_output', type=int, default=50,
                         help='The number of results to be presented on the heatmap')
 
     parser.add_argument('-f', '--filter_redundant', action="store_true",

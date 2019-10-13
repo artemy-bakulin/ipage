@@ -4,7 +4,7 @@ import numpy as np
 def calculate_matrix(db_profiles, child_unique_genes):
     length = len(db_profiles)
     sums = db_profiles.sum(1)
-    matrix = np.memmap('memmapped2.dat', dtype=np.int16,
+    matrix = np.memmap('memmapped2.ipage.dat', dtype=np.int16,
                        mode='w+', shape=(length, length))
     for i in range(length):
         matrix[i] = (i + 1) * ((db_profiles[i] > db_profiles).sum(1) / sums[i] < child_unique_genes)
@@ -19,7 +19,7 @@ def non_redundancy_sort_pre(db_names, db_annotations, db_profiles, child_unique_
     db_names = [db_names[i] for i in range(len(db_names)) if db_sums[i] > 6]
     db_annotations = [db_annotations[i] for i in range(len(db_annotations)) if db_sums[i] > 6]
     db_profiles = db_profiles[db_sums > 6]
-    db_profiles_memmap = np.memmap('memmapped1.dat', dtype=np.int16,
+    db_profiles_memmap = np.memmap('memmapped1.ipage.dat', dtype=np.int16,
                                    mode='w+', shape=np.shape(db_profiles))
     db_profiles_memmap[:] = db_profiles[:]
     matrix = calculate_matrix(db_profiles_memmap, child_unique_genes)

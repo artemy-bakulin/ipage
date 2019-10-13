@@ -2,7 +2,6 @@ import filter_db
 import heatmap
 import stat_ipage
 import preprocess
-import binary
 import MI
 import numpy as np
 import pickle
@@ -11,7 +10,7 @@ import pickle
 def preprocess_db(database_names_file, first_col_is_genes, database_index_file, filter_redundant, child_unique_genes,
                   parent_unique_genes):
     database_name = database_index_file.split('/')[-1].split('.')[0]
-    db_file = '%s.pickle' % database_name
+    db_file = '%s.ipage.pickle' % database_name
 
     db_names, db_profiles, db_annotations, db_genes = preprocess.get_profiles(database_index_file, first_col_is_genes,
                                                                               database_names_file)
@@ -23,7 +22,6 @@ def preprocess_db(database_names_file, first_col_is_genes, database_index_file, 
     with open(db_file, 'wb') as f:
         pickle.dump(db_names, f, pickle.HIGHEST_PROTOCOL)
         pickle.dump(db_profiles, f, pickle.HIGHEST_PROTOCOL)
-        # binary.write_np_array(db_profiles, database_name + '.bin')
         pickle.dump(db_annotations, f, pickle.HIGHEST_PROTOCOL)
         pickle.dump(db_genes, f, pickle.HIGHEST_PROTOCOL)
 
@@ -34,12 +32,11 @@ def process_input(expression_file, database_name, input_format, output_format, e
                                                                   input_format=input_format,
                                                                   output_format=output_format, sep=sep)
 
-    db_file = '%s.pickle' % (database_name)
+    db_file = '%s.ipage.pickle' % (database_name)
 
     with open(db_file, 'rb') as f:
         db_names = pickle.load(f)
         db_profiles = pickle.load(f)
-        # db_profiles = binary.read_np_array(database_name + '.bin', np.int16())
         db_annotations = pickle.load(f)
         db_genes = pickle.load(f)
     intersected_genes = set(genes) & set(db_genes)

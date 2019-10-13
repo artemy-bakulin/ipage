@@ -8,7 +8,7 @@ import pandas as pd
 
 def change_accessions(ids, input_format, output_format):  # refseq->ensemble->entrez;
     if input_format != output_format:
-        mart_file = 'biomart_%s_%s.pickle' % (input_format, output_format)
+        mart_file = 'biomart_%s_%s.ipage.pickle' % (input_format, output_format)
         if os.path.isfile(mart_file) and os.stat(mart_file).st_size != 0:
             with open(mart_file, 'rb') as f:
                 input_to_output = pickle.load(f)
