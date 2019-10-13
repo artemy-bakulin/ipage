@@ -10,18 +10,17 @@ if subpackage_folder_path not in sys.path:
     sys.path.append(subpackage_folder_path)
 
 
-@numba.jit(cache=True, nopython=True, nogil=True)
-def discretize(inp_array, bins, noise_std = 0.000000001, new_seed = False):
+@numba.jit(cache=True, nopython=False, nogil=True)
+def discretize(inp_array, bins, noise_std=0.000000001, new_seed=False):
     if not new_seed:
         np.random.seed(57)
     length = len(inp_array)
     to_discr = inp_array + np.random.normal(0, noise_std, length)
 
-    # got the idea from here: https://stackoverflow.com/questions/39418380/histogram-with-equal-number-of-points-in-each-bin
     bins_for_discr = np.interp(np.linspace(0, length, bins + 1),
                                np.arange(length),
                                np.sort(to_discr))
-    bins_for_discr[-1] += 1 # otherwize numpy creates one extra bin with only 1 point
+    bins_for_discr[-1] += 1  # otherwize numpy creates one extra bin with only 1 point
     digitized = np.digitize(to_discr, bins_for_discr)
     digitized = digitized - 1
 
@@ -38,7 +37,7 @@ def entropy_empirical(counts, total_number, base=None):
     base = math.e if base is None else base
 
     for i in probs:
-        if i == 0: # np.isclose is not supported by numba
+        if i == 0:  # np.isclose is not supported by numba
             continue
         ent -= i * math.log(i) / math.log(base)
 
@@ -47,7 +46,7 @@ def entropy_empirical(counts, total_number, base=None):
 
 @numba.jit(cache=True, nopython=True, nogil=True)
 def histogram_1D(X, x_bins):
-    x_bins = np.int64(x_bins) # for some reason it doesn't work with np.int32
+    x_bins = np.int64(x_bins)  # for some reason it doesn't work with np.int32
     hist_array = np.zeros(x_bins)
     for x_val in X:
         x_coord = int(x_val)
@@ -58,10 +57,10 @@ def histogram_1D(X, x_bins):
 
 @numba.jit(cache=True, nopython=True, nogil=True)
 def histogram_2D(X, Y, x_bins, y_bins):
-    x_bins = np.int64(x_bins) # for some reason it doesn't work with np.int32
+    x_bins = np.int64(x_bins)  # for some reason it doesn't work with np.int32
     y_bins = np.int64(y_bins)
     hist_array = np.zeros((x_bins, y_bins))
-    for x_val, y_val in zip(X,Y):
+    for x_val, y_val in zip(X, Y):
         x_coord = int(x_val)
         y_coord = int(y_val)
         hist_array[x_coord, y_coord] += 1
@@ -74,7 +73,7 @@ def histogram_3D(X, Y, Z, x_bins, y_bins, z_bins):
     y_bins = np.int64(y_bins)
     z_bins = np.int64(z_bins)
     hist_array = np.zeros((x_bins, y_bins, z_bins))
-    for x_val, y_val, z_val in zip(X,Y,Z):
+    for x_val, y_val, z_val in zip(X, Y, Z):
         x_coord = int(x_val)
         y_coord = int(y_val)
         z_coord = int(z_val)
