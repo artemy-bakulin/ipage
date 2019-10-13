@@ -20,7 +20,7 @@ Preprocess requires following parameters:
 
 **-i** database index file
 
-Absolutely required. It is a file which should represent a tab delimited table with either gene name in the first column and gene sets' names in other or in reverse. The order of which is specified by "-g".
+Strictly required. It is a file which should represent a tab delimited table with either gene name in the first column and gene sets' names in other or in reverse. The order of which is specified by "-g".
 
 **-g** database order
 
@@ -45,7 +45,7 @@ Calculations require following parameters:
 
 **-e** expression file
 
-Absolutely required. It is a file which represents a table with first column being genes and the second value of abundance of transcripts. 
+Strictly required. It is a file which represents a table with first column being genes and the second value of abundance of transcripts. 
 
 **-e_sep** expression file separator
 
@@ -99,7 +99,7 @@ The output consists of two files:
 
 1)The list of significant pathways with CMI and z-score.
 
-2)The heatmap with top hits
+2)The heatmap with top hits.
 
 <img src="bladder.jpg" width="400">
 
