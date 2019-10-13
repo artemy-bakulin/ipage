@@ -10,7 +10,7 @@ In general iPAGE requires two things: file with the genes' expression and file w
 
 It is run in two steps (though they can be combined in one): preprocessing and calculations.
 
-##Preprocess
+**Preprocess**
 
 Preprocess is denoted with "**-preprocess**" tag.
 At this step the programme processes the database converting it into vectorized form.
@@ -32,7 +32,7 @@ Optional, though it is common of pathway databases to have a file with annotatio
 Optional, a lot of gene databases have a hierarchical structure, having both children' and parents' genes' sets.  The built-in filter function deletes those redundant pathways which do not have any additional information to other pathways.
 The programme is run with the following parameters:
 
-##Calculations
+**Calculations**
 
 Does not need to be specified by any tag.
 This step performs calculations of conditional mutual information and can be run only if the previous step was successfully completed.
@@ -70,15 +70,21 @@ Specifies the number of bins in heatmap graphical output. The default is 15.
 **-max_draw** hits in  graphical output
 Specifies the maximum number of hits in graphical output. The default is 50.
 
-##Clearance
+**Clearance**
 During its progress the programme makes a number of intermediate files. In the end of the session they should be deleted manually. 
 These files' names follow a similar pattern, it is: "name+dot+ipage+dot+extension". For example: human_ensembl_index.pickle.
 
 
-To test the programme run the following commands:
+**To test** the programme run the following commands:
 
 python3.6 scripts/ipage.py -preprocess -i test/human_ensembl_index.txt -g -n test/human_ensembl_names.txt -f
 
 python3.6 scripts/ipage.py -e bladder.exp -e_sep $'\t' -i test/human_ensembl_index.txt -db_format ensg -e_format refseq
 
+The output consists of two files:
+1)The list of significant pathways with CMI and z-score.
+
+2)The heatmap with top hits
+
+![heatmap](heatmap.jpg)
 
