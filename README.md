@@ -51,6 +51,10 @@ Strictly required. It is a file which represents a table with first column being
 
 Specifies separator in expression file, the default is tab.
 
+**-e_sep** number of column with values
+
+Specifies number of column with required stability values (zero-based numbering), by default 1.
+
 **-i** database index file
 
 Should be specified again to access the right vectorized data storage file.
@@ -82,6 +86,9 @@ Specifies the number of bins in heatmap graphical output. The default is 15.
 **-max_draw** hits in  graphical output
 
 Specifies the maximum number of hits in graphical output. The default is 50.
+
+**-o** output
+Specifies output name (without extension), by default name of the expression file is taken.
 
 **Clearance**
 
