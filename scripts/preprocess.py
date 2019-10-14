@@ -40,8 +40,9 @@ def change_accessions(ids, input_format, output_format):  # refseq->ensemble->en
         return ids
 
 
-def get_expression_profile(expression_file, nbins=10, sep='\t', id_column=0, expression_column=1, input_format=None,
-                           output_format=None):
+def get_expression_profile(expression_file, nbins=10, sep='\t', input_format=None,
+                           output_format=None, expression_column=1):
+    id_column = 0
     df = pd.read_csv(expression_file, sep=sep)
     df = df.sort_values(by=df.columns[expression_column])
     expression_level = np.array(df.iloc[:, expression_column])
@@ -61,7 +62,7 @@ def get_profiles(db_index_file, first_col_is_genes, db_names_file=None):
         id_a = set()
         id_b = set()
         for line in lines:
-            id_a |= set(line.split('\t')[0])
+            id_a |= set([line.split('\t')[0]])
             id_b |= set(line.split('\t')[1:])
         id_a.add('')
         id_a.remove('')
@@ -94,11 +95,13 @@ def get_profiles(db_index_file, first_col_is_genes, db_names_file=None):
         with open(db_names_file) as f:
             lines = filter(None, (line.rstrip() for line in f))
             for line in lines:
-                if len(line.split('\t')) == 3:
-                    annotation = line.split('\t')[1]
-                else:
-                    annotation = line.split('\t')[0]
-                db_annotations[db_names.index(line.split('\t')[0])] = annotation
+                name=line.split('\t')[0]
+                if name in db_names:
+                    if len(line.split('\t')) == 3:
+                        annotation = line.split('\t')[1]
+                    else:
+                        annotation = name
+                    db_annotations[db_names.index(name)] = annotation
     else:
         db_annotations = db_names
     genes_bool = np.sum(profiles, axis=0) != 0

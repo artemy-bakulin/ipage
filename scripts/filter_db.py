@@ -14,7 +14,8 @@ def calculate_matrix(db_profiles, child_unique_genes):
     return matrix
 
 
-def non_redundancy_sort_pre(db_names, db_annotations, db_profiles, min_pathway_length, child_unique_genes, parent_unique_genes):
+def non_redundancy_sort_pre(db_names, db_annotations, db_profiles, min_pathway_length, child_unique_genes,
+                            parent_unique_genes):
     db_sums = np.sum(db_profiles, axis=1)
     db_names = [db_names[i] for i in range(len(db_names)) if db_sums[i] > 6]
     db_annotations = [db_annotations[i] for i in range(len(db_annotations)) if db_sums[i] > 6]

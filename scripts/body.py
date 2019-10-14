@@ -29,12 +29,13 @@ def preprocess_db(database_names_file, first_col_is_genes, database_index_file, 
 
 
 def process_input(expression_file, database_name, input_format, output_format, expression_bins=10, abundance_bins=3,
-                  sep='\t'):
+                  sep='\t', expression_column=1):
     genes, expression_profile = preprocess.get_expression_profile(expression_file, expression_bins,
                                                                   input_format=input_format,
-                                                                  output_format=output_format, sep=sep)
+                                                                  output_format=output_format, sep=sep,
+                                                                  expression_column=expression_column)
 
-    db_file = '%s.ipage.pickle' % (database_name)
+    db_file = '%s.ipage.pickle' % database_name
 
     with open(db_file, 'rb') as f:
         db_names = pickle.load(f)

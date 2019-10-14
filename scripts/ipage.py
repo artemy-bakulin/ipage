@@ -1,7 +1,6 @@
 import sys
 import argparse
 import body
-import time
 
 if __name__ == '__main__':
     input_ = sys.argv[1:]
@@ -17,11 +16,16 @@ if __name__ == '__main__':
 
     parser.add_argument('-e_sep', '--separator_in_expression_file', type=str, default='\t',
                         help='The type of the separator in expression file')
+    parser.add_argument('-e_col', '--column_with_stability', type=int, default=2,
+                        help='Column in expression file of required stability values')
 
     parser.add_argument('-db_format', '--database_format', type=str,
                         help='The database format')
     parser.add_argument('-e_format', '--expression_file_format', type=str,
                         help='The expression file format')
+
+    parser.add_argument('-o', '--output_name', type=str,
+                        help='The name of the output file')
 
     parser.add_argument('-e_bins', '--expression_bins', type=int, default=10,
                         help='The number of the expression bins')
@@ -60,13 +64,13 @@ if __name__ == '__main__':
     sep = args.separator_in_expression_file
     input_format = args.expression_file_format
     output_format = args.database_format
+    expression_column = args.column_with_stability
 
     if args.preprocess:
         body.preprocess_db(database_names_file, first_col_is_genes, database_index_file, filter_redundant,
                            min_pathway_length, child_unique_genes, parent_unique_genes)
     if expression_file and database_index_file:
-        output_name = args.expression_file.split('/')[-1].split('.')[0]
-        t = time.time()
+        output_name = args.output_name if args.output_name else args.expression_file.split('/')[-1].split('.')[0]
         expression_profile, db_names, db_profiles, db_annotations, abundance_profile = body.process_input(
             expression_file,
             database_name,
@@ -74,7 +78,8 @@ if __name__ == '__main__':
             output_format,
             expression_bins,
             abundance_bins,
-            sep)
+            sep,
+            expression_column)
         cmis = body.count_cmi_for_profiles(expression_profile, db_profiles, abundance_profile, expression_bins, db_bins,
                                            abundance_bins)
         accepted_db_profiles, z_scores = body.statistical_testing(cmis, expression_profile, db_profiles,
