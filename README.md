@@ -51,9 +51,9 @@ Strictly required. It is a file which represents a table with first column being
 
 Specifies separator in expression file, the default is tab.
 
-**-e_sep** number of column with values
+**-e_col** number of column with values
 
-Specifies number of column with required stability values (zero-based numbering), by default 1.
+Specifies number of column with required stability values (1-based numbering), by default 2.
 
 **-i** database index file
 
