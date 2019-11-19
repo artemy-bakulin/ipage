@@ -104,7 +104,7 @@ def get_profiles(db_index_file, first_col_is_genes, db_names_file=None):
                     db_annotations[db_names.index(name)] = annotation
     else:
         db_annotations = db_names
-    print(db_annotations)
+
     genes_bool = np.sum(profiles, axis=0) != 0
     profiles = profiles[:, genes_bool]
     db_genes = [db_genes[i] for i in range(len(db_genes)) if genes_bool[i]]
