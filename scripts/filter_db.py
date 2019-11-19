@@ -1,4 +1,5 @@
 import numpy as np
+import os
 
 
 def calculate_matrix(db_profiles, child_unique_genes):
@@ -30,9 +31,12 @@ def non_redundancy_sort_pre(db_names, db_annotations, db_profiles, min_pathway_l
         indices = [matrix[i] != -1]
         parent_genes_sum = db_profiles[i].sum()
         parent_unique_genes_sum = np.count_nonzero((np.sum(db_profiles[indices], axis=0) - db_profiles[i]) == -1)
+        parent_unique_genes_sum = parent_unique_genes_sum if parent_unique_genes_sum != 0 else 0.001
         if parent_genes_sum / parent_unique_genes_sum < parent_unique_genes:
             li.append(i)
     db_annotations = [db_annotations[i] for i in range(len(db_annotations)) if i not in li]
     db_profiles = np.array([db_profiles[i] for i in range(len(db_profiles)) if i not in li])
     db_names = [db_names[i] for i in range(len(db_names)) if i not in li]
+    os.remove('memmapped1.ipage.dat')
+    os.remove('memmapped2.ipage.dat')
     return db_names, db_annotations, db_profiles

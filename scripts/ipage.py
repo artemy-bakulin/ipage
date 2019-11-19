@@ -65,6 +65,7 @@ if __name__ == '__main__':
     input_format = args.expression_file_format
     output_format = args.database_format
     expression_column = args.column_with_stability
+    expression_column -= 1
 
     if args.preprocess:
         body.preprocess_db(database_names_file, first_col_is_genes, database_index_file, filter_redundant,

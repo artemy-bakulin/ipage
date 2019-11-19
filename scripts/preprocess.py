@@ -42,7 +42,7 @@ def change_accessions(ids, input_format, output_format):  # refseq->ensemble->en
 
 def get_expression_profile(expression_file, nbins=10, sep='\t', input_format=None,
                            output_format=None, expression_column=1):
-    id_column = 0
+    id_column = expression_column-1
     df = pd.read_csv(expression_file, sep=sep)
     df = df.sort_values(by=df.columns[expression_column])
     expression_level = np.array(df.iloc[:, expression_column])
@@ -95,15 +95,16 @@ def get_profiles(db_index_file, first_col_is_genes, db_names_file=None):
         with open(db_names_file) as f:
             lines = filter(None, (line.rstrip() for line in f))
             for line in lines:
-                name=line.split('\t')[0]
+                name = line.split('\t')[0]
                 if name in db_names:
-                    if len(line.split('\t')) == 3:
-                        annotation = line.split('\t')[1]
+                    if len(line.split('\t')) > 2:
+                        annotation = '; '.join(line.split('\t')[:2])
                     else:
                         annotation = name
                     db_annotations[db_names.index(name)] = annotation
     else:
         db_annotations = db_names
+    print(db_annotations)
     genes_bool = np.sum(profiles, axis=0) != 0
     profiles = profiles[:, genes_bool]
     db_genes = [db_genes[i] for i in range(len(db_genes)) if genes_bool[i]]

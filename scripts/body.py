@@ -5,13 +5,14 @@ import preprocess
 import MI
 import numpy as np
 import pickle
+import scipy.sparse as sparse
 
 
 def preprocess_db(database_names_file, first_col_is_genes, database_index_file, filter_redundant, min_pathway_length,
                   child_unique_genes,
                   parent_unique_genes):
     database_name = database_index_file.split('/')[-1].split('.')[0]
-    db_file = '%s.ipage.pickle' % database_name
+    db_file = '%s.ipage' % database_name
 
     db_names, db_profiles, db_annotations, db_genes = preprocess.get_profiles(database_index_file, first_col_is_genes,
                                                                               database_names_file)
@@ -21,11 +22,12 @@ def preprocess_db(database_names_file, first_col_is_genes, database_index_file, 
                                                                                   min_pathway_length,
                                                                                   child_unique_genes,
                                                                                   parent_unique_genes)
-    with open(db_file, 'wb') as f:
+    with open("{0}.pickle".format(db_file), "wb") as f:
         pickle.dump(db_names, f, pickle.HIGHEST_PROTOCOL)
-        pickle.dump(db_profiles, f, pickle.HIGHEST_PROTOCOL)
         pickle.dump(db_annotations, f, pickle.HIGHEST_PROTOCOL)
         pickle.dump(db_genes, f, pickle.HIGHEST_PROTOCOL)
+    sparse_profiles = sparse.csr_matrix(db_profiles)
+    sparse.save_npz("{0}.npz".format(db_file), sparse_profiles, compressed=True)
 
 
 def process_input(expression_file, database_name, input_format, output_format, expression_bins=10, abundance_bins=3,
@@ -35,13 +37,14 @@ def process_input(expression_file, database_name, input_format, output_format, e
                                                                   output_format=output_format, sep=sep,
                                                                   expression_column=expression_column)
 
-    db_file = '%s.ipage.pickle' % database_name
+    db_file = '%s.ipage' % database_name
 
-    with open(db_file, 'rb') as f:
+    with open("{0}.pickle".format(db_file), 'rb') as f:
         db_names = pickle.load(f)
-        db_profiles = pickle.load(f)
         db_annotations = pickle.load(f)
         db_genes = pickle.load(f)
+    sparse_profiles = sparse.load_npz("{0}.npz".format(db_file))
+    db_profiles = np.array(sparse_profiles.todense())
     intersected_genes = set(genes) & set(db_genes)
 
     db_genes_bool = [gene in intersected_genes for gene in db_genes]
@@ -55,7 +58,6 @@ def process_input(expression_file, database_name, input_format, output_format, e
 
     indices = np.array([db_genes.index(gene) for gene in genes])
     db_profiles = db_profiles[:, indices]
-
     abundance_profile = db_profiles.sum(axis=0)
     abundance_profile = MI.discretize(abundance_profile, abundance_bins)
     return expression_profile, db_names, db_profiles, db_annotations, abundance_profile
@@ -102,7 +104,7 @@ def visualize_output(accepted_db_profiles, db_profiles, db_annotations, cmis, dr
     for i in range(len(db_profiles)):
         if accepted_db_profiles[i]:
             p_values[db_annotations[i]] = stat_ipage.get_p_values(db_profiles[i], draw_bins)
-
+    max_draw_output = min(max_draw_output, len(p_values))
     up_regulated_func = lambda x: sum(p_values[x][:len(p_values[x]) // 2]) <= sum(p_values[x][len(p_values[x]) // 2:])
     down_regulated_func = lambda x: sum(p_values[x][:len(p_values[x]) // 2]) >= sum(p_values[x][len(p_values[x]) // 2:])
     order_to_cmi = lambda x: cmis[db_annotations.index(x)]
