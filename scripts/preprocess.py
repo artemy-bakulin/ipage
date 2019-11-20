@@ -42,7 +42,7 @@ def change_accessions(ids, input_format, output_format):  # refseq->ensemble->en
 
 def get_expression_profile(expression_file, nbins=10, sep='\t', input_format=None,
                            output_format=None, expression_column=1):
-    id_column = expression_column-1
+    id_column = 0
     df = pd.read_csv(expression_file, sep=sep)
     df = df.sort_values(by=df.columns[expression_column])
     expression_level = np.array(df.iloc[:, expression_column])

@@ -20,7 +20,7 @@ def discretize(inp_array, bins, noise_std=0.000000001, new_seed=False):
     bins_for_discr = np.interp(np.linspace(0, length, bins + 1),
                                np.arange(length),
                                np.sort(to_discr))
-    bins_for_discr[-1] += 1  # otherwize numpy creates one extra bin with only 1 point
+    bins_for_discr[-1] += 1  # otherwise numpy creates one extra bin with only 1 point
     digitized = np.digitize(to_discr, bins_for_discr)
     digitized = digitized - 1
 

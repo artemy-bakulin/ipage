@@ -1,6 +1,8 @@
 import sys
 import argparse
 import body
+import os
+import pandas as pd
 
 if __name__ == '__main__':
     input_ = sys.argv[1:]
@@ -16,7 +18,7 @@ if __name__ == '__main__':
 
     parser.add_argument('-e_sep', '--separator_in_expression_file', type=str, default='\t',
                         help='The type of the separator in expression file')
-    parser.add_argument('-e_col', '--column_with_stability', type=int, default=2,
+    parser.add_argument('-e_col', '--column_with_stability', type=str, default='2',
                         help='Column in expression file of required stability values')
 
     parser.add_argument('-db_format', '--database_format', type=str,
@@ -64,32 +66,44 @@ if __name__ == '__main__':
     sep = args.separator_in_expression_file
     input_format = args.expression_file_format
     output_format = args.database_format
-    expression_column = args.column_with_stability
-    expression_column -= 1
+    out_dir = 'out_ipage/'
+    expression_columns = args.column_with_stability
 
     if args.preprocess:
         body.preprocess_db(database_names_file, first_col_is_genes, database_index_file, filter_redundant,
                            min_pathway_length, child_unique_genes, parent_unique_genes)
     if expression_file and database_index_file:
-        output_name = args.output_name if args.output_name else args.expression_file.split('/')[-1].split('.')[0]
-        expression_profile, db_names, db_profiles, db_annotations, abundance_profile = body.process_input(
-            expression_file,
-            database_name,
-            input_format,
-            output_format,
-            expression_bins,
-            abundance_bins,
-            sep,
-            expression_column)
-        cmis = body.count_cmi_for_profiles(expression_profile, db_profiles, abundance_profile, expression_bins, db_bins,
-                                           abundance_bins)
-        accepted_db_profiles, z_scores = body.statistical_testing(cmis, expression_profile, db_profiles,
-                                                                  abundance_profile,
-                                                                  expression_bins, db_bins, abundance_bins)
-        body.visualize_output(accepted_db_profiles, db_profiles, db_annotations, cmis, draw_bins, max_draw_output,
-                              output_name)
 
-        with open(output_name + '.out', 'w+') as f:
-            for i in range(len(accepted_db_profiles)):
-                if accepted_db_profiles[i]:
-                    f.write(db_names[i] + '\t' + str(cmis[i]) + '\t' + str(z_scores[i]) + '\n')
+        if not os.path.isdir(out_dir):
+            os.mkdir(out_dir)
+
+        if args.column_with_stability == 'all':
+            expression_columns = range(1, pd.read_csv(expression_file).shape[1] + 1)
+        else:
+            expression_columns = (int(el) - 1 for el in expression_columns.split(','))
+
+        for expression_column in expression_columns:
+            output_name = args.output_name if args.output_name else args.expression_file.split('/')[-1].split('.')[0]
+            output_name += '.' + str(expression_column) if len(list(expression_columns)) > 1 else ''
+            output_name = out_dir + output_name
+            expression_profile, db_names, db_profiles, db_annotations, abundance_profile = body.process_input(
+                expression_file,
+                database_name,
+                input_format,
+                output_format,
+                expression_bins,
+                abundance_bins,
+                sep,
+                expression_column)
+            cmis = body.count_cmi_for_profiles(expression_profile, db_profiles, abundance_profile, expression_bins, db_bins,
+                                               abundance_bins)
+            accepted_db_profiles, z_scores = body.statistical_testing(cmis, expression_profile, db_profiles,
+                                                                      abundance_profile,
+                                                                      expression_bins, db_bins, abundance_bins)
+            body.visualize_output(accepted_db_profiles, db_profiles, db_annotations, cmis, draw_bins, max_draw_output,
+                                  output_name)
+
+            with open(output_name + '.out', 'w+') as f:
+                for i in range(len(accepted_db_profiles)):
+                    if accepted_db_profiles[i]:
+                        f.write(db_names[i] + '\t' + str(cmis[i]) + '\t' + str(z_scores[i]) + '\n')
