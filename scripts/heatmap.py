@@ -11,7 +11,6 @@ def draw_heatmap(names, values, output_name):
     matrix_height_in = matrix_height_pt / dpi
     matrix_width_pt = fontsize_pt * len(values[0]) + 300
     matrix_width_in = matrix_width_pt / dpi
-
     top_margin = 0.04  # in percentage of the figure height
     bottom_margin = 0.04  # in percentage of the figure height
     figure_height = matrix_height_in / (1 - top_margin - bottom_margin)

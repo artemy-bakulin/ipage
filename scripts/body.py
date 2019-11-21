@@ -114,5 +114,5 @@ def visualize_output(accepted_db_profiles, db_profiles, db_annotations, cmis, dr
                      :max_draw_output // 2]
     p_names = up_regulated + down_regulated
     p_values = [p_values[name] for name in p_names]
-
-    heatmap.draw_heatmap(p_names, p_values, output_name)
+    if len(p_values) != 0:
+        heatmap.draw_heatmap(p_names, p_values, output_name)

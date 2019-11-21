@@ -78,7 +78,7 @@ if __name__ == '__main__':
             os.mkdir(out_dir)
 
         if args.column_with_stability == 'all':
-            expression_columns = range(1, pd.read_csv(expression_file).shape[1] + 1)
+            expression_columns = range(1, pd.read_csv(expression_file, sep='\t').shape[1])
         else:
             expression_columns = (int(el) - 1 for el in expression_columns.split(','))
 
