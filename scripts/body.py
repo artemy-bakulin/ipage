@@ -60,7 +60,7 @@ def process_input(expression_file, database_name, input_format, output_format, e
     db_profiles = db_profiles[:, indices]
     abundance_profile = db_profiles.sum(axis=0)
     abundance_profile = MI.discretize(abundance_profile, abundance_bins)
-    return expression_profile, db_names, db_profiles, db_annotations, abundance_profile
+    return expression_profile, db_names, db_profiles, db_annotations, abundance_profile, genes
 
 
 def count_cmi_for_profiles(expression_profile, db_profiles, abundance_profile, expression_bins, db_bins,
@@ -99,7 +99,35 @@ def statistical_testing(cmis, expression_profile, db_profiles, abundance_profile
     return accepted_db_profiles[rev_indices], z_scores[rev_indices]
 
 
-def visualize_output(accepted_db_profiles, db_profiles, db_annotations, cmis, draw_bins, max_draw_output, output_name):
+def get_rbp_expression(genes, input_format, expression_profile, accepted_db_profiles, db_annotations):
+    rbp_names = [db_annotations[i] for i in range(len(db_annotations))
+                 if accepted_db_profiles[i]]
+    genes_symbols = preprocess.change_accessions(genes, input_format, 'gene_symbol')
+    di = {el1: el2 for el1 in genes_symbols for el2 in rbp_names if el1 in el2}
+
+    rbp_expression = dict(zip([di[gene] for gene in genes_symbols if any(gene in name for name in rbp_names)],
+                              expression_profile[[any(gene in name for name in rbp_names) for gene in genes_symbols]]))
+    medium = sum(rbp_expression.values()) / len(rbp_expression)  # this is due to the possible lack of information
+    rbp_expression.update({el: medium for el in rbp_names if el not in rbp_expression})
+    return rbp_expression
+
+
+def get_rbp_expression(genes, input_format, expression_profile, accepted_db_profiles, db_annotations):
+    rbp_names = [db_annotations[i] for i in range(len(db_annotations))
+                 if accepted_db_profiles[i]]
+    rbp_names_clear = [name.replace('_', ' ').split()[0] for name in rbp_names]
+    genes_symbols = preprocess.change_accessions(genes, input_format, 'gene_symbol')
+
+    rbp_expression = dict(zip(rbp_names,
+                              [expression_profile[genes_symbols.index(name)] for name in rbp_names_clear if
+                               name in genes_symbols]))
+    medium = sum(rbp_expression.values()) / len(rbp_expression)  # this is due to the possible lack of information
+    rbp_expression.update({el: medium for el in rbp_names if el not in rbp_expression})
+    return rbp_expression
+
+
+def visualize_output(accepted_db_profiles, db_profiles, db_annotations, cmis, draw_bins, max_draw_output, output_name,
+                     rbp_expression=None):
     p_values = {}
     for i in range(len(db_profiles)):
         if accepted_db_profiles[i]:
@@ -114,5 +142,8 @@ def visualize_output(accepted_db_profiles, db_profiles, db_annotations, cmis, dr
                      :max_draw_output // 2]
     p_names = up_regulated + down_regulated
     p_values = [p_values[name] for name in p_names]
+    if rbp_expression:
+        rbp_expression = [rbp_expression[name] for name in p_names]
+
     if len(p_values) != 0:
-        heatmap.draw_heatmap(p_names, p_values, output_name)
+        heatmap.draw_heatmap(p_names, p_values, output_name, rbp_expression)

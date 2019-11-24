@@ -1,35 +1,74 @@
-import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib.gridspec import GridSpec
 
 
-def draw_heatmap(names, values, output_name):
+def columnwise_heatmap(array, ax=None, expression=True, **kw):
+    ax = ax or plt.gca()
+    premask = np.tile(np.arange(array.shape[1]), array.shape[0]).reshape(array.shape)
+    images = []
+    if expression:
+        col = np.ma.array(array, mask=premask != 0)
+        im = ax.imshow(col, cmap='YlOrBr', **kw)
+        images.append(im)
+    col = np.ma.array(array, mask=premask == 0)
+    im = ax.imshow(col, cmap='RdBu_r', **kw)
+    images.append(im)
+    return images
+
+
+def add_colorbar(fig, ims, n):
+    fig.subplots_adjust(left=0.06, right=0.65)
+    rows = n
+    cols = 1
+    gs = GridSpec(rows, cols)
+    gs.update(left=0.7, right=0.75, wspace=1, hspace=0.3)
+    if n == 0:
+        colorbar_names = ['']
+        colorbar_images = []
+    elif n == 1:
+        colorbar_names = ['genes']
+        colorbar_images = [-1]
+    elif n == 2:
+        colorbar_names = ['rbp', 'genes']
+        colorbar_images = [0, 1]
+    for i in colorbar_images:
+        cax = fig.add_subplot(gs[i // cols, i % cols])
+        fig.colorbar(ims[i], cax=cax)
+        cax.set_title(colorbar_names[i], fontsize=10)
+
+
+def draw_heatmap(names, values, output_name, expression=None):
+    df = pd.DataFrame(values, index=names)
+
+    if expression:
+        df.insert(0, 'rbp', expression)
     plt.rcParams.update({'font.weight': 'roman'})
-    plt.rcParams.update({'ytick.labelsize': 20})
+    plt.rcParams.update({'ytick.labelsize': 10})
     fontsize_pt = plt.rcParams['ytick.labelsize']
     dpi = 72.27
-    matrix_height_pt = fontsize_pt * len(values) + 300
+    matrix_height_pt = (fontsize_pt+30) * df.shape[0]
     matrix_height_in = matrix_height_pt / dpi
-    matrix_width_pt = fontsize_pt * len(values[0]) + 300
+    matrix_width_pt = (fontsize_pt+42.5) * df.shape[1]
     matrix_width_in = matrix_width_pt / dpi
     top_margin = 0.04  # in percentage of the figure height
-    bottom_margin = 0.04  # in percentage of the figure height
-    figure_height = matrix_height_in / (1 - top_margin - bottom_margin)
+    bottom_margin = 0.04  # in percentage of the figure height / (1 - top_margin - bottom_margin)
+    figure_height = matrix_height_in
     figure_width = matrix_width_in
-    fig, ax = plt.subplots(
-        figsize=(figure_width, figure_height),
-        gridspec_kw=dict(top=1 - top_margin, bottom=bottom_margin))
 
-    ax.set_xticks(np.arange(0))
-    ax.set_yticks(np.arange(len(names)))
-    ax.set_yticklabels(names)
-    plt.tick_params(axis='y', which='both', labelleft=False, labelright=True, length=0)
-    fig.autofmt_xdate()
-    plt.set_cmap('RdBu_r')
-    # ax.set_title('')
-    im = ax.imshow(values)
-    cbaxes = fig.add_axes([0, 0.3, 0.35 / figure_width, 0.4])  # This is the position of the colorbar
-    hm = plt.colorbar(im, cax=cbaxes)
-    # ax.set_xlabel('Expression increases –>', size=25,weight='roman')
-    plt.savefig('%s.jpg' % output_name, bbox_inches='tight')
+    fig, ax = plt.subplots(figsize=(figure_width, figure_height))
+
+    ims = columnwise_heatmap(df.values, ax=ax, aspect="auto", expression=bool(expression))
+
+    ax.set(xticks=np.arange(len(df.columns)), yticks=np.arange(len(df)),
+           xticklabels=[''] * len(df.columns), yticklabels=df.index)
+    ax.tick_params(bottom=False, top=False,
+                   labelbottom=False, labeltop=True, left=False)
+    if expression:
+        n = 2
+    else:
+        n = 1
+    add_colorbar(fig, ims, n)
     # plt.show()
-    plt.close()
+    plt.savefig('%s.jpg' % output_name, bbox_inches='tight')

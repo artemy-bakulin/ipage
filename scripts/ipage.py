@@ -46,6 +46,9 @@ if __name__ == '__main__':
     parser.add_argument('-preprocess', '--preprocess', action="store_true",
                         help='Preprocess database')
 
+    parser.add_argument('-clip ', '--eclip', action="store_true",
+                        help='Adds a column with rbp\'s expression')
+
     args = parser.parse_args(input_)
 
     database_name = args.database_index_file.split('/')[-1].split('.')[0]
@@ -68,6 +71,7 @@ if __name__ == '__main__':
     output_format = args.database_format
     out_dir = 'out_ipage/'
     expression_columns = args.column_with_stability
+    eclip = args.eclip
 
     if args.preprocess:
         body.preprocess_db(database_names_file, first_col_is_genes, database_index_file, filter_redundant,
@@ -86,7 +90,7 @@ if __name__ == '__main__':
             output_name = args.output_name if args.output_name else args.expression_file.split('/')[-1].split('.')[0]
             output_name += '.' + str(expression_column) if len(list(expression_columns)) > 1 else ''
             output_name = out_dir + output_name
-            expression_profile, db_names, db_profiles, db_annotations, abundance_profile = body.process_input(
+            expression_profile, db_names, db_profiles, db_annotations, abundance_profile, genes = body.process_input(
                 expression_file,
                 database_name,
                 input_format,
@@ -95,13 +99,18 @@ if __name__ == '__main__':
                 abundance_bins,
                 sep,
                 expression_column)
-            cmis = body.count_cmi_for_profiles(expression_profile, db_profiles, abundance_profile, expression_bins, db_bins,
-                                               abundance_bins)
+            cmis = body.count_cmi_for_profiles(expression_profile, db_profiles, abundance_profile, expression_bins,
+                                               db_bins, abundance_bins)
             accepted_db_profiles, z_scores = body.statistical_testing(cmis, expression_profile, db_profiles,
                                                                       abundance_profile,
                                                                       expression_bins, db_bins, abundance_bins)
+            if eclip:
+                rbp_expression = body.get_rbp_expression(genes, input_format, expression_profile, accepted_db_profiles,
+                                                         db_annotations)
+            else:
+                rbp_expression = None
             body.visualize_output(accepted_db_profiles, db_profiles, db_annotations, cmis, draw_bins, max_draw_output,
-                                  output_name)
+                                  output_name, rbp_expression)
 
             with open(output_name + '.out', 'w+') as f:
                 for i in range(len(accepted_db_profiles)):
