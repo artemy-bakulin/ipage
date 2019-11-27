@@ -49,6 +49,7 @@ def get_expression_profile(expression_file, nbins=10, sep='\t', input_format=Non
     expression_level = np.array(df.iloc[:, expression_column])
     expression_profile = MI.discretize(expression_level, nbins)
     genes = list(df.iloc[:, id_column])
+    genes = [gene.split('.')[0] for gene in genes]
     if input_format and output_format and input_format != output_format:
         genes = change_accessions(genes, input_format, output_format, tmp)
         gene_dict = dict(zip(genes, expression_profile))

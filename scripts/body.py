@@ -48,7 +48,6 @@ def process_input(expression_file, database_name, input_format, output_format, e
     intersected_genes = set(genes) & set(db_genes)
     db_genes_bool = [gene in intersected_genes for gene in db_genes]
     db_genes = [gene for gene in db_genes if gene in intersected_genes]
-
     genes_bool = [gene in intersected_genes for gene in genes]
     genes = [gene for gene in genes if gene in intersected_genes]
 

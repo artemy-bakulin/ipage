@@ -83,10 +83,10 @@ if __name__ == '__main__':
 
         if args.output_name:
             output_dir = args.output_name
-            output_name = args.output_name.split('/')[-1]
+            output_file = args.output_name.split('/')[-1]
         else:
             output_dir = 'output_ipage/'
-            output_name = args.expression_file.split('/')[-1].split('.')[0]
+            output_file = args.expression_file.split('/')[-1].split('.')[0]
 
         if not os.path.isdir(output_dir):
             os.mkdir(output_dir)
@@ -98,8 +98,8 @@ if __name__ == '__main__':
 
         for expression_column in expression_columns:
 
+            output_name = '/'.join([output_dir, output_file])
             output_name += '.' + str(expression_column) if len(list(expression_columns)) > 1 else ''
-            output_name = '/'.join([output_dir, output_name])
 
             expression_profile, db_names, db_profiles, db_annotations, abundance_profile, genes = body.process_input(
                 expression_file,
