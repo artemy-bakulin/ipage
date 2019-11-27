@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 
 
-def columnwise_heatmap(array, ax=None, expression=True, **kw):
+def columnwise_heatmap(array, ax=None, expression=False, **kw):
     ax = ax or plt.gca()
     premask = np.tile(np.arange(array.shape[1]), array.shape[0]).reshape(array.shape)
     images = []
@@ -12,7 +12,9 @@ def columnwise_heatmap(array, ax=None, expression=True, **kw):
         col = np.ma.array(array, mask=premask != 0)
         im = ax.imshow(col, cmap='YlOrBr', **kw)
         images.append(im)
-    col = np.ma.array(array, mask=premask == 0)
+        col = np.ma.array(array, mask=premask == 0)
+    else:
+        col = np.ma.array(array, mask=premask == -1)
     im = ax.imshow(col, cmap='RdBu_r', **kw)
     images.append(im)
     return images
@@ -48,9 +50,9 @@ def draw_heatmap(names, values, output_name, expression=None):
     plt.rcParams.update({'ytick.labelsize': 10})
     fontsize_pt = plt.rcParams['ytick.labelsize']
     dpi = 72.27
-    matrix_height_pt = (fontsize_pt+30) * df.shape[0]
+    matrix_height_pt = (fontsize_pt+30/2) * df.shape[0]
     matrix_height_in = matrix_height_pt / dpi
-    matrix_width_pt = (fontsize_pt+42.5) * df.shape[1]
+    matrix_width_pt = (fontsize_pt+42.5/2) * df.shape[1]
     matrix_width_in = matrix_width_pt / dpi
     top_margin = 0.04  # in percentage of the figure height
     bottom_margin = 0.04  # in percentage of the figure height / (1 - top_margin - bottom_margin)

@@ -69,17 +69,27 @@ if __name__ == '__main__':
     sep = args.separator_in_expression_file
     input_format = args.expression_file_format
     output_format = args.database_format
-    out_dir = 'out_ipage/'
     expression_columns = args.column_with_stability
     eclip = args.eclip
+    tmp = 'tmp_ipage'
+
+    if not os.path.isdir(tmp):
+        os.mkdir(tmp)
 
     if args.preprocess:
         body.preprocess_db(database_names_file, first_col_is_genes, database_index_file, filter_redundant,
-                           min_pathway_length, child_unique_genes, parent_unique_genes)
+                           min_pathway_length, child_unique_genes, parent_unique_genes, tmp)
     if expression_file and database_index_file:
 
-        if not os.path.isdir(out_dir):
-            os.mkdir(out_dir)
+        if args.output_name:
+            output_dir = args.output_name
+            output_name = args.output_name.split('/')[-1]
+        else:
+            output_dir = 'output_ipage/'
+            output_name = args.expression_file.split('/')[-1].split('.')[0]
+
+        if not os.path.isdir(output_dir):
+            os.mkdir(output_dir)
 
         if args.column_with_stability == 'all':
             expression_columns = range(1, pd.read_csv(expression_file, sep='\t').shape[1])
@@ -87,9 +97,10 @@ if __name__ == '__main__':
             expression_columns = (int(el) - 1 for el in expression_columns.split(','))
 
         for expression_column in expression_columns:
-            output_name = args.output_name if args.output_name else args.expression_file.split('/')[-1].split('.')[0]
+
             output_name += '.' + str(expression_column) if len(list(expression_columns)) > 1 else ''
-            output_name = out_dir + output_name
+            output_name = '/'.join([output_dir, output_name])
+
             expression_profile, db_names, db_profiles, db_annotations, abundance_profile, genes = body.process_input(
                 expression_file,
                 database_name,
@@ -98,17 +109,19 @@ if __name__ == '__main__':
                 expression_bins,
                 abundance_bins,
                 sep,
-                expression_column)
+                expression_column,
+                tmp)
             cmis = body.count_cmi_for_profiles(expression_profile, db_profiles, abundance_profile, expression_bins,
                                                db_bins, abundance_bins)
             accepted_db_profiles, z_scores = body.statistical_testing(cmis, expression_profile, db_profiles,
                                                                       abundance_profile,
                                                                       expression_bins, db_bins, abundance_bins)
             if eclip:
-                rbp_expression = body.get_rbp_expression(genes, input_format, expression_profile, accepted_db_profiles,
+                rbp_expression = body.get_rbp_expression(genes, output_format, expression_profile, accepted_db_profiles,
                                                          db_annotations)
             else:
                 rbp_expression = None
+
             body.visualize_output(accepted_db_profiles, db_profiles, db_annotations, cmis, draw_bins, max_draw_output,
                                   output_name, rbp_expression)
 

@@ -10,7 +10,7 @@ import scipy.sparse as sparse
 
 def preprocess_db(database_names_file, first_col_is_genes, database_index_file, filter_redundant, min_pathway_length,
                   child_unique_genes,
-                  parent_unique_genes):
+                  parent_unique_genes, tmp='tmp_ipage'):
     database_name = database_index_file.split('/')[-1].split('.')[0]
     db_file = '%s.ipage' % database_name
 
@@ -22,31 +22,30 @@ def preprocess_db(database_names_file, first_col_is_genes, database_index_file, 
                                                                                   min_pathway_length,
                                                                                   child_unique_genes,
                                                                                   parent_unique_genes)
-    with open("{0}.pickle".format(db_file), "wb") as f:
+    with open("{0}/{1}.pickle".format(tmp, db_file), "wb") as f:
         pickle.dump(db_names, f, pickle.HIGHEST_PROTOCOL)
         pickle.dump(db_annotations, f, pickle.HIGHEST_PROTOCOL)
         pickle.dump(db_genes, f, pickle.HIGHEST_PROTOCOL)
     sparse_profiles = sparse.csr_matrix(db_profiles)
-    sparse.save_npz("{0}.npz".format(db_file), sparse_profiles, compressed=True)
+    sparse.save_npz("{0}/{1}.npz".format(tmp, db_file), sparse_profiles, compressed=True)
 
 
 def process_input(expression_file, database_name, input_format, output_format, expression_bins=10, abundance_bins=3,
-                  sep='\t', expression_column=1):
+                  sep='\t', expression_column=1, tmp='tmp_ipage'):
     genes, expression_profile = preprocess.get_expression_profile(expression_file, expression_bins,
                                                                   input_format=input_format,
                                                                   output_format=output_format, sep=sep,
-                                                                  expression_column=expression_column)
+                                                                  expression_column=expression_column, tmp=tmp)
 
     db_file = '%s.ipage' % database_name
 
-    with open("{0}.pickle".format(db_file), 'rb') as f:
+    with open("{0}/{1}.pickle".format(tmp, db_file), 'rb') as f:
         db_names = pickle.load(f)
         db_annotations = pickle.load(f)
         db_genes = pickle.load(f)
-    sparse_profiles = sparse.load_npz("{0}.npz".format(db_file))
+    sparse_profiles = sparse.load_npz("{0}/{1}.npz".format(tmp, db_file))
     db_profiles = np.array(sparse_profiles.todense())
     intersected_genes = set(genes) & set(db_genes)
-
     db_genes_bool = [gene in intersected_genes for gene in db_genes]
     db_genes = [gene for gene in db_genes if gene in intersected_genes]
 
@@ -112,16 +111,20 @@ def get_rbp_expression(genes, input_format, expression_profile, accepted_db_prof
     return rbp_expression
 
 
-def get_rbp_expression(genes, input_format, expression_profile, accepted_db_profiles, db_annotations):
+def get_rbp_expression(genes, output_format, expression_profile, accepted_db_profiles, db_annotations):
     rbp_names = [db_annotations[i] for i in range(len(db_annotations))
                  if accepted_db_profiles[i]]
     rbp_names_clear = [name.replace('_', ' ').split()[0] for name in rbp_names]
-    genes_symbols = preprocess.change_accessions(genes, input_format, 'gene_symbol')
+    genes_symbols = preprocess.change_accessions(genes, output_format, 'gene_symbol')
 
     rbp_expression = dict(zip(rbp_names,
                               [expression_profile[genes_symbols.index(name)] for name in rbp_names_clear if
                                name in genes_symbols]))
-    medium = sum(rbp_expression.values()) / len(rbp_expression)  # this is due to the possible lack of information
+
+    if len(rbp_expression) != 0:
+        medium = sum(rbp_expression.values()) / len(rbp_expression)  # this is due to the possible lack of information
+    else:
+        medium = 0
     rbp_expression.update({el: medium for el in rbp_names if el not in rbp_expression})
     return rbp_expression
 

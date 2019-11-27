@@ -6,9 +6,9 @@ import MI
 import pandas as pd
 
 
-def change_accessions(ids, input_format, output_format):  # refseq->ensemble->entrez;
+def change_accessions(ids, input_format, output_format, tmp='tmp_ipage'):  # refseq->ensemble->entrez;
     if input_format != output_format:
-        mart_file = 'biomart_%s_%s.ipage.pickle' % (input_format, output_format)
+        mart_file = '%s/biomart_%s_%s.ipage.pickle' % (tmp, input_format, output_format)
         if os.path.isfile(mart_file) and os.stat(mart_file).st_size != 0:
             with open(mart_file, 'rb') as f:
                 input_to_output = pickle.load(f)
@@ -41,15 +41,16 @@ def change_accessions(ids, input_format, output_format):  # refseq->ensemble->en
 
 
 def get_expression_profile(expression_file, nbins=10, sep='\t', input_format=None,
-                           output_format=None, expression_column=1):
+                           output_format=None, expression_column=1, tmp='tmp_ipage'):
     id_column = 0
-    df = pd.read_csv(expression_file, sep=sep)
+    df = pd.read_csv(expression_file, sep=sep, skiprows=1, header=None)
+    df = df[df.iloc[:, expression_column].notna()]
     df = df.sort_values(by=df.columns[expression_column])
     expression_level = np.array(df.iloc[:, expression_column])
     expression_profile = MI.discretize(expression_level, nbins)
     genes = list(df.iloc[:, id_column])
     if input_format and output_format and input_format != output_format:
-        genes = change_accessions(genes, input_format, output_format)
+        genes = change_accessions(genes, input_format, output_format, tmp)
         gene_dict = dict(zip(genes, expression_profile))
         expression_profile = np.array([gene_dict[gene] for gene in gene_dict.keys() if gene != '-'])
         genes = [gene for gene in gene_dict.keys() if gene != '-']
@@ -91,7 +92,7 @@ def get_profiles(db_index_file, first_col_is_genes, db_names_file=None):
         db_genes = id_b
         db_names = id_a
     if db_names_file:
-        db_annotations = [''] * len(db_names)
+        db_annotations = db_names.copy()
         with open(db_names_file) as f:
             lines = filter(None, (line.rstrip() for line in f))
             for line in lines:
