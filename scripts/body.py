@@ -143,6 +143,9 @@ def visualize_output(accepted_db_profiles, db_profiles, db_annotations, cmis, dr
     down_regulated = list(sorted(filter(down_regulated_func, p_values), key=order_to_cmi, reverse=True))[
                      :max_draw_output // 2]
     p_names = up_regulated + down_regulated
+
+    for i in range(len(list(p_values.values())[0])):
+        p_names = sorted(p_names, key=lambda x: p_values[x][i], reverse=True)
     p_values = [p_values[name] for name in p_names]
     if rbp_expression:
         rbp_expression = [rbp_expression[name] for name in p_names]

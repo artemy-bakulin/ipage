@@ -99,7 +99,7 @@ def get_profiles(db_index_file, first_col_is_genes, db_names_file=None):
             for line in lines:
                 name = line.split('\t')[0]
                 if name in db_names:
-                    if len(line.split('\t')) > 2:
+                    if len(line.split('\t')) >= 2:
                         annotation = '; '.join(line.split('\t')[:2])
                     else:
                         annotation = name

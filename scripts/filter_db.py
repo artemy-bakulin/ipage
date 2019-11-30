@@ -30,7 +30,7 @@ def non_redundancy_sort_pre(db_names, db_annotations, db_profiles, min_pathway_l
     for i in range(len(matrix)):
         indices = [matrix[i] != -1]
         parent_genes_sum = db_profiles[i].sum()
-        parent_unique_genes_sum = np.count_nonzero((np.sum(db_profiles[indices], axis=0) - db_profiles[i]) == -1)
+        parent_unique_genes_sum = np.count_nonzero((np.sum(db_profiles[tuple(indices)], axis=0) - db_profiles[i]) == -1)
         parent_unique_genes_sum = parent_unique_genes_sum if parent_unique_genes_sum != 0 else 0.001
         if parent_genes_sum / parent_unique_genes_sum < parent_unique_genes:
             li.append(i)
