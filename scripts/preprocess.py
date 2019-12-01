@@ -23,7 +23,7 @@ def change_accessions(ids, input_format, output_format, tmp='tmp_ipage'):  # ref
             mart_attributes = {'enst': ['ensembl_transcript_id'], 'ensg': ['ensembl_gene_id'],
                                'refseq': ['refseq_mrna', 'refseq_mrna_predicted', 'refseq_ncrna',
                                           'refseq_ncrna_predicted'], 'entrez': ['entrezgene_id'],
-                               'gene_symbol': ['entrezgene_accession']}
+                               'gene_symbol': ['entrezgene_accession'], 'ext': ['external_gene_name']}
             input_to_output = {}
             for mart in mart_attributes[input_format]:
                 df1 = dataset.query(attributes=[mart] + mart_attributes[output_format])
