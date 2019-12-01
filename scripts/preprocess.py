@@ -14,7 +14,7 @@ def change_accessions(ids, input_format, output_format, tmp='tmp_ipage'):  # ref
                 input_to_output = pickle.load(f)
 
         else:
-            if input_format[:2] == 'mus' and output_format[:2] == 'mus':
+            if input_format[:3] == 'mus' and output_format[:2] == 'mus':
                 dataset = pybiomart.Dataset(name='mmusculus_gene_ensembl', host='http://www.ensembl.org')
                 input_format = input_format[3:]
                 output_format = output_format[3:]
