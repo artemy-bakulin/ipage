@@ -8,7 +8,7 @@ import pandas as pd
 
 def change_accessions(ids, input_format, output_format, species, tmp='tmp_ipage'):  # refseq->ensemble->entrez;
     if input_format != output_format:
-        mart_file = '%s/biomart_%s_%s.ipage.pickle' % (tmp, input_format, output_format)
+        mart_file = '%s/biomart_%s%s_%s.ipage.pickle' % (tmp, species, input_format, output_format)
         if os.path.isfile(mart_file) and os.stat(mart_file).st_size != 0:
             with open(mart_file, 'rb') as f:
                 input_to_output = pickle.load(f)
@@ -29,6 +29,9 @@ def change_accessions(ids, input_format, output_format, species, tmp='tmp_ipage'
                 df1 = df1[df1.iloc[:, 1].notna()]
                 if input_format == 'entrez' or output_format == 'entrez':
                     df1['NCBI gene ID'] = df1['NCBI gene ID'].apply(lambda x: '%.f' % x)
+                if input_format == 'gene_symbol' or output_format == 'gene_symbol':
+                    upper = lambda x: x.upper() if type(x) == str else x
+                    df1['NCBI gene accession'] = df1['NCBI gene accession'].apply(upper)
                 input_to_output = {**input_to_output, **dict(zip(df1.iloc[:, 0], df1.iloc[:, 1]))}
             with open(mart_file, 'wb') as f:
                 pickle.dump(input_to_output, f, pickle.HIGHEST_PROTOCOL)

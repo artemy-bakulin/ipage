@@ -97,21 +97,19 @@ def statistical_testing(cmis, expression_profile, db_profiles, abundance_profile
     return accepted_db_profiles[rev_indices], z_scores[rev_indices]
 
 
-def get_rbp_expression(genes, output_format, expression_profile, accepted_db_profiles, db_annotations, species, tmp):
-    rbp_names = [db_annotations[i] for i in range(len(db_annotations))
-                 if accepted_db_profiles[i]]
-    rbp_names_clear = [name.replace('_', ' ').split()[0] for name in rbp_names]
+def get_rbp_expression(genes, output_format, expression_profile, accepted_db_profiles, db_names, db_annotations, species, tmp):
+    rbp_names = [db_names[i].replace('_', ' ').split()[0] for i in range(len(db_names)) if accepted_db_profiles[i]]
+    rbp_annotations = [db_annotations[i] for i in range(len(db_names)) if accepted_db_profiles[i]]
+
     genes_symbols = preprocess.change_accessions(genes, output_format, 'gene_symbol', species, tmp)
-
-    rbp_expression = dict(zip(rbp_names,
-                              [expression_profile[genes_symbols.index(name)] for name in rbp_names_clear if
-                               name in genes_symbols]))
-
+    rbp_expression = dict(zip(rbp_annotations,
+                              [expression_profile[genes_symbols.index(name)] for name in rbp_names
+                               if name in genes_symbols]))
     if len(rbp_expression) != 0:
         medium = sum(rbp_expression.values()) / len(rbp_expression)  # this is due to the possible lack of information
     else:
         medium = 0
-    rbp_expression.update({el: medium for el in rbp_names if el not in rbp_expression})
+    rbp_expression.update({el: medium for el in rbp_annotations if el not in rbp_expression})
     return rbp_expression
 
 
@@ -131,8 +129,8 @@ def visualize_output(accepted_db_profiles, db_profiles, db_annotations, cmis, dr
                      :max_draw_output // 2]
     p_names = up_regulated + down_regulated
 
-    for i in range(draw_bins):
-        p_names = sorted(p_names, key=lambda x: p_values[x][i], reverse=True)
+    for i in range(draw_bins-2):
+        p_names = sorted(p_names, key=lambda x: sum(p_values[x][i:i+3]), reverse=True)
     p_values = [p_values[name] for name in p_names]
     if rbp_expression:
         rbp_expression = [rbp_expression[name] for name in p_names]

@@ -23,8 +23,8 @@ def get_p_values(profile, nbins):
     p_values = []
     objects_total = sum(profile)
     total_size = len(profile)
-    objects_in_bin = sum(profile[bin_size + remain:bin_size])
-    p = hypergeometric(objects_in_bin, total_size, objects_total, bin_size)
+    objects_in_bin = sum(profile[:bin_size+remain])
+    p = hypergeometric(objects_in_bin, total_size, objects_total, bin_size + remain)
     p_values.append(p)
     for i in range(1, nbins):
         objects_in_bin = sum(profile[bin_size * i:bin_size * (i + 1)])

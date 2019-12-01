@@ -21,9 +21,9 @@ if __name__ == '__main__':
     parser.add_argument('-e_col', '--column_with_stability', type=str, default='2',
                         help='Column in expression file of required stability values')
 
-    parser.add_argument('-db_format', '--database_format', type=str,
+    parser.add_argument('-db_format', '--database_format', type=str, default='ensg',
                         help='The database format')
-    parser.add_argument('-e_format', '--expression_file_format', type=str,
+    parser.add_argument('-e_format', '--expression_file_format', type=str, default='ensg',
                         help='The expression file format')
 
     parser.add_argument('-o', '--output_name', type=str,
@@ -115,8 +115,8 @@ if __name__ == '__main__':
                                                                       abundance_profile,
                                                                       expression_bins, db_bins, abundance_bins)
             if regulator:
-                regulator_expression = body.get_rbp_expression(genes, output_format, expression_profile, accepted_db_profiles,
-                                                         db_annotations, species, tmp)
+                regulator_expression = body.get_rbp_expression(genes, output_format, expression_profile,
+                                                               accepted_db_profiles,  db_names, db_annotations, species, tmp)
             else:
                 regulator_expression = None
 
