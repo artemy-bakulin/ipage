@@ -113,8 +113,8 @@ def get_rbp_expression(genes, output_format, expression_profile, accepted_db_pro
     return rbp_expression
 
 
-def visualize_output(accepted_db_profiles, db_profiles, db_annotations, cmis, draw_bins, max_draw_output, output_name,
-                     rbp_expression=None):
+def produce_output(accepted_db_profiles, db_profiles, db_names, db_annotations, cmis, z_scores,
+                   draw_bins, max_draw_output, output_name, rbp_expression=None):
     p_values = {}
     for i in range(len(db_profiles)):
         if accepted_db_profiles[i]:
@@ -123,11 +123,11 @@ def visualize_output(accepted_db_profiles, db_profiles, db_annotations, cmis, dr
     up_regulated_func = lambda x: sum(p_values[x][:len(p_values[x]) // 2]) <= sum(p_values[x][len(p_values[x]) // 2:])
     down_regulated_func = lambda x: sum(p_values[x][:len(p_values[x]) // 2]) >= sum(p_values[x][len(p_values[x]) // 2:])
     order_to_cmi = lambda x: cmis[db_annotations.index(x)]
-    up_regulated = list(sorted(filter(up_regulated_func, p_values), key=order_to_cmi, reverse=True))[
-                   :max_draw_output // 2]
-    down_regulated = list(sorted(filter(down_regulated_func, p_values), key=order_to_cmi, reverse=True))[
-                     :max_draw_output // 2]
-    p_names = up_regulated + down_regulated
+    up_regulated = list(sorted(filter(up_regulated_func, p_values), key=order_to_cmi, reverse=True))
+    up_regulated_portion = up_regulated[:max_draw_output // 2]
+    down_regulated = list(sorted(filter(down_regulated_func, p_values), key=order_to_cmi, reverse=True))
+    down_regulated_portion = down_regulated[:max_draw_output // 2]
+    p_names = up_regulated_portion + down_regulated_portion
 
     for i in range(draw_bins-2):
         p_names = sorted(p_names, key=lambda x: sum(p_values[x][i:i+3]), reverse=True)
@@ -137,3 +137,8 @@ def visualize_output(accepted_db_profiles, db_profiles, db_annotations, cmis, dr
 
     if len(p_values) != 0:
         heatmap.draw_heatmap(p_names, p_values, output_name, rbp_expression)
+
+    with open(output_name + '.out', 'w+') as f:
+        for name in up_regulated:
+            i = db_names.index(name)
+            f.write('\t'.join([db_names[i], str(cmis[i]), str(z_scores[i]), 'UP']) + '\n')

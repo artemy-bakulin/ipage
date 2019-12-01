@@ -120,10 +120,6 @@ if __name__ == '__main__':
             else:
                 regulator_expression = None
 
-            body.visualize_output(accepted_db_profiles, db_profiles, db_annotations, cmis, draw_bins, max_draw_output,
-                                  output_name, regulator_expression)
+            body.produce_output(accepted_db_profiles, db_profiles, db_annotations, db_names, cmis, z_scores,
+                                draw_bins, max_draw_output, output_name, regulator_expression)
 
-            with open(output_name + '.out', 'w+') as f:
-                for i in range(len(accepted_db_profiles)):
-                    if accepted_db_profiles[i]:
-                        f.write(db_names[i] + '\t' + str(cmis[i]) + '\t' + str(z_scores[i]) + '\n')
