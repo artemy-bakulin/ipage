@@ -6,7 +6,7 @@ import MI
 import pandas as pd
 
 
-def change_accessions(ids, input_format, output_format, species, tmp='tmp_ipage'):  # refseq->ensemble->entrez;
+def change_accessions(ids, input_format, output_format, species, tmp):  # refseq->ensemble->entrez;
     if input_format != output_format:
         mart_file = '%s/biomart_%s%s_%s.ipage.pickle' % (tmp, species, input_format, output_format)
         if os.path.isfile(mart_file) and os.stat(mart_file).st_size != 0:
@@ -46,22 +46,16 @@ def change_accessions(ids, input_format, output_format, species, tmp='tmp_ipage'
         return ids
 
 
-def get_expression_profile(expression_file, nbins=10, sep='\t', input_format=None,
-                           output_format=None, expression_column=1, species='human', tmp='tmp_ipage'):
-    id_column = 0
-    df = pd.read_csv(expression_file, sep=sep, skiprows=1, header=None)
-    df = df[df.iloc[:, expression_column].notna()]
-    df = df.sort_values(by=df.columns[expression_column])
-    expression_level = np.array(df.iloc[:, expression_column])
-    expression_profile = MI.discretize(expression_level, nbins)
-    genes = list(df.iloc[:, id_column])
+def get_expression_profile(expression_level, genes, expression_bins, input_format, output_format, species, tmp):
+    expression_level = np.array(expression_level)
+    expression_profile = MI.discretize(expression_level, expression_bins)
     genes = [gene.split('.')[0] for gene in genes]
     if input_format and output_format and input_format != output_format:
         genes = change_accessions(genes, input_format, output_format, species, tmp)
         gene_dict = dict(zip(genes, expression_profile))
         expression_profile = np.array([gene_dict[gene] for gene in gene_dict.keys() if gene != '-'])
         genes = [gene for gene in gene_dict.keys() if gene != '-']
-    return genes, expression_profile
+    return expression_profile, genes
 
 
 def get_profiles(db_index_file, first_col_is_genes, db_names_file=None):

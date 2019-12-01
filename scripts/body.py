@@ -4,15 +4,14 @@ import stat_ipage
 import preprocess
 import MI
 import numpy as np
+import pandas as pd
 import pickle
 import scipy.sparse as sparse
 
 
 def preprocess_db(database_names_file, first_col_is_genes, database_index_file, filter_redundant, min_pathway_length,
-                  child_unique_genes,
-                  parent_unique_genes, tmp='tmp_ipage'):
+                  child_unique_genes, parent_unique_genes, tmp):
     database_name = database_index_file.split('/')[-1].split('.')[0]
-    db_file = '%s.ipage' % database_name
 
     db_names, db_profiles, db_annotations, db_genes = preprocess.get_profiles(database_index_file, first_col_is_genes,
                                                                               database_names_file)
@@ -22,29 +21,27 @@ def preprocess_db(database_names_file, first_col_is_genes, database_index_file, 
                                                                                   min_pathway_length,
                                                                                   child_unique_genes,
                                                                                   parent_unique_genes)
-    with open("{0}/{1}.pickle".format(tmp, db_file), "wb") as f:
+    with open("{0}/{1}.ipage.pickle".format(tmp, database_name), "wb+") as f:
         pickle.dump(db_names, f, pickle.HIGHEST_PROTOCOL)
         pickle.dump(db_annotations, f, pickle.HIGHEST_PROTOCOL)
         pickle.dump(db_genes, f, pickle.HIGHEST_PROTOCOL)
     sparse_profiles = sparse.csr_matrix(db_profiles)
-    sparse.save_npz("{0}/{1}.npz".format(tmp, db_file), sparse_profiles, compressed=True)
+    sparse.save_npz("{0}/{1}.ipage.npz".format(tmp, database_name), sparse_profiles, compressed=True)
 
 
-def process_input(expression_file, database_name, input_format, output_format, expression_bins=10, abundance_bins=3,
-                  sep='\t', expression_column=1, species='human', tmp='tmp_ipage'):
-    genes, expression_profile = preprocess.get_expression_profile(expression_file, expression_bins,
-                                                                  input_format=input_format,
-                                                                  output_format=output_format, species=species, sep=sep,
-                                                                  expression_column=expression_column, tmp=tmp)
+def process_input(expression_level, genes, database_index_file, input_format, output_format, expression_bins, abundance_bins,
+                  species, tmp):
 
-    db_file = '%s.ipage' % database_name
-
-    with open("{0}/{1}.pickle".format(tmp, db_file), 'rb') as f:
+    expression_profile, genes = preprocess.get_expression_profile(expression_level, genes, expression_bins,
+                                                                  input_format, output_format, species, tmp)
+    database_name = database_index_file.split('/')[-1].split('.')[0]
+    with open("{0}/{1}.ipage.pickle".format(tmp, database_name), 'rb') as f:
         db_names = pickle.load(f)
         db_annotations = pickle.load(f)
         db_genes = pickle.load(f)
-    sparse_profiles = sparse.load_npz("{0}/{1}.npz".format(tmp, db_file))
+    sparse_profiles = sparse.load_npz("{0}/{1}.ipage.npz".format(tmp, database_name))
     db_profiles = np.array(sparse_profiles.todense())
+
     intersected_genes = set(genes) & set(db_genes)
     db_genes_bool = [gene in intersected_genes for gene in db_genes]
     db_genes = [gene for gene in db_genes if gene in intersected_genes]
@@ -137,8 +134,16 @@ def produce_output(accepted_db_profiles, db_profiles, db_names, db_annotations, 
 
     if len(p_values) != 0:
         heatmap.draw_heatmap(p_names, p_values, output_name, rbp_expression)
-
-    with open(output_name + '.out', 'w+') as f:
-        for name in up_regulated:
-            i = db_names.index(name)
-            f.write('\t'.join([db_names[i], str(cmis[i]), str(z_scores[i]), 'UP']) + '\n')
+    output = pd.DataFrame(columns=['Group', 'CMI', 'Z-score', 'Regulation'])
+    j = 0
+    for name in up_regulated:
+        i = db_annotations.index(name)
+        output.loc[j] = [db_names[i], str(cmis[i])[:8], str(z_scores[i]), 'UP']
+        j += 1
+    for name in down_regulated:
+        i = db_annotations.index(name)
+        output.loc[j] = [db_names[i], str(cmis[i])[:8], str(z_scores[i]), 'DOWN']
+        j += 1
+    if output_name != 'stdout':
+        output.to_csv(output_name + '.out', index=False, sep='\t')
+    return output

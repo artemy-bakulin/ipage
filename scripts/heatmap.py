@@ -72,5 +72,7 @@ def draw_heatmap(names, values, output_name, expression=None):
     else:
         n = 1
     add_colorbar(fig, ims, n)
-    # plt.show()
-    plt.savefig('%s.jpg' % output_name, bbox_inches='tight')
+    if output_name == 'stdout':
+        plt.show(block=False)
+    else:
+        plt.savefig('%s.jpg' % output_name, bbox_inches='tight')

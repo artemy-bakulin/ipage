@@ -3,6 +3,63 @@ import argparse
 import body
 import os
 import pandas as pd
+import numpy as np
+
+
+def preprocess(database_index_file, database_names_file=None, first_col_is_genes=True, filter_redundant=False,
+               tmp='tmp_ipage', min_pathway_length=6):
+    child_unique_genes = 0.2
+    parent_unique_genes = 0.4
+    if not os.path.isdir(tmp):
+        os.mkdir(tmp)
+    body.preprocess_db(database_names_file, first_col_is_genes, database_index_file, filter_redundant,
+                       min_pathway_length, child_unique_genes, parent_unique_genes, tmp)
+
+
+def read_expression_file(expression_file, sep, expression_column):
+    id_column = 0
+    df = pd.read_csv(expression_file, sep=sep, skiprows=1, header=None)
+    df = df[df.iloc[:, expression_column].notna()]
+    df = df.sort_values(by=df.columns[expression_column])
+    expression_level = np.array(df.iloc[:, expression_column])
+    genes = list(df.iloc[:, id_column])
+    return expression_level, genes
+
+
+def ipage(expression_level, genes, database_name, output_name='stdout', input_format=None, output_format=None,
+          expression_bins=10, abundance_bins=3, species='human', draw_bins=15, max_draw_output=50, regulator=False,
+          tmp='tmp_ipage'):
+
+    db_bins = 2
+
+    if output_name != 'stdout':
+        output_dir = '/'.join(output_name.split('/')[:-1])
+        output_file = output_name.split('/')[-1]
+
+        if not os.path.isdir(output_dir):
+            os.mkdir(output_dir)
+
+    expression_profile, db_names, db_profiles, db_annotations, abundance_profile, genes = body.process_input(
+        expression_level, genes, database_name, input_format, output_format, expression_bins, abundance_bins,
+        species, tmp)
+
+    cmis = body.count_cmi_for_profiles(expression_profile, db_profiles, abundance_profile, expression_bins,
+                                       db_bins, abundance_bins)
+    accepted_db_profiles, z_scores = body.statistical_testing(cmis, expression_profile, db_profiles,
+                                                              abundance_profile,
+                                                              expression_bins, db_bins, abundance_bins)
+    if regulator:
+        regulator_expression = body.get_rbp_expression(genes, output_format, expression_profile,
+                                                       accepted_db_profiles, db_names, db_annotations, species,
+                                                       tmp)
+    else:
+        regulator_expression = None
+
+    output = body.produce_output(accepted_db_profiles, db_profiles, db_names, db_annotations, cmis, z_scores,
+                        draw_bins, max_draw_output, output_name, regulator_expression)
+    if output_name == 'stdout':
+        return output
+
 
 if __name__ == '__main__':
     input_ = sys.argv[1:]
@@ -56,16 +113,12 @@ if __name__ == '__main__':
 
     database_name = args.database_index_file.split('/')[-1].split('.')[0]
 
-    db_bins = 2
     expression_file = args.expression_file
     expression_bins = args.expression_bins
     database_names_file = args.database_names_file
     database_index_file = args.database_index_file
     abundance_bins = args.sum_bins
     draw_bins = args.draw_bins
-    child_unique_genes = 0.2
-    parent_unique_genes = 0.4
-    min_pathway_length = 6
     filter_redundant = args.filter_redundant
     max_draw_output = args.max_draw_output
     first_col_is_genes = args.first_col_is_genes
@@ -75,51 +128,29 @@ if __name__ == '__main__':
     expression_columns = args.column_with_stability
     species = args.species
     regulator = args.regulator
-    tmp = 'tmp_ipage'
 
+    tmp = 'tmp_ipage'
     if not os.path.isdir(tmp):
         os.mkdir(tmp)
 
     if args.preprocess:
-        body.preprocess_db(database_names_file, first_col_is_genes, database_index_file, filter_redundant,
-                           min_pathway_length, child_unique_genes, parent_unique_genes, tmp)
+        preprocess(database_names_file, database_index_file, first_col_is_genes, filter_redundant, tmp)
     if expression_file and database_index_file:
 
-        if args.output_name:
-            output_dir = args.output_name
-            output_file = args.output_name.split('/')[-1]
-        else:
-            output_dir = 'output_ipage/'
-            output_file = args.expression_file.split('/')[-1].split('.')[0]
-
-        if not os.path.isdir(output_dir):
-            os.mkdir(output_dir)
-
         if args.column_with_stability == 'all':
-            expression_columns = range(1, pd.read_csv(expression_file, sep='\t').shape[1])
+            expression_columns = range(1, pd.read_csv(expression_file, sep=sep).shape[1])
         else:
             expression_columns = (int(el) - 1 for el in expression_columns.split(','))
 
         for expression_column in expression_columns:
-
-            output_name = '/'.join([output_dir, output_file])
+            if args.output_name:
+                output_name = args.output_name
+            else:
+                output_name = 'output_ipage/' + args.expression_file.split('/')[-1].split('.')[0]
             output_name += '.' + str(expression_column) if len(list(expression_columns)) > 1 else ''
 
-            expression_profile, db_names, db_profiles, db_annotations, abundance_profile, genes = body.process_input(
-                expression_file, database_name, input_format, output_format, expression_bins,
-                abundance_bins, sep, expression_column, species, tmp)
+            expression_level, genes = read_expression_file(expression_file, sep, expression_column)
 
-            cmis = body.count_cmi_for_profiles(expression_profile, db_profiles, abundance_profile, expression_bins,
-                                               db_bins, abundance_bins)
-            accepted_db_profiles, z_scores = body.statistical_testing(cmis, expression_profile, db_profiles,
-                                                                      abundance_profile,
-                                                                      expression_bins, db_bins, abundance_bins)
-            if regulator:
-                regulator_expression = body.get_rbp_expression(genes, output_format, expression_profile,
-                                                               accepted_db_profiles,  db_names, db_annotations, species, tmp)
-            else:
-                regulator_expression = None
-
-            body.produce_output(accepted_db_profiles, db_profiles, db_annotations, db_names, cmis, z_scores,
-                                draw_bins, max_draw_output, output_name, regulator_expression)
+            ipage(expression_level, genes, database_index_file, output_name, input_format, output_format, expression_bins,
+                  abundance_bins, species, draw_bins, max_draw_output, regulator, tmp)
 
