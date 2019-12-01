@@ -46,8 +46,11 @@ if __name__ == '__main__':
     parser.add_argument('-preprocess', '--preprocess', action="store_true",
                         help='Preprocess database')
 
-    parser.add_argument('-clip ', '--eclip', action="store_true",
+    parser.add_argument('-sp', '--species', type=str, default='human',
                         help='Adds a column with rbp\'s expression')
+
+    parser.add_argument('-reg', '--regulator', action="store_true",
+                        help='Adds a column with regulator\'s expression')
 
     args = parser.parse_args(input_)
 
@@ -70,7 +73,8 @@ if __name__ == '__main__':
     input_format = args.expression_file_format
     output_format = args.database_format
     expression_columns = args.column_with_stability
-    eclip = args.eclip
+    species = args.species
+    regulator = args.regulator
     tmp = 'tmp_ipage'
 
     if not os.path.isdir(tmp):
@@ -102,28 +106,22 @@ if __name__ == '__main__':
             output_name += '.' + str(expression_column) if len(list(expression_columns)) > 1 else ''
 
             expression_profile, db_names, db_profiles, db_annotations, abundance_profile, genes = body.process_input(
-                expression_file,
-                database_name,
-                input_format,
-                output_format,
-                expression_bins,
-                abundance_bins,
-                sep,
-                expression_column,
-                tmp)
+                expression_file, database_name, input_format, output_format, expression_bins,
+                abundance_bins, sep, expression_column, species, tmp)
+
             cmis = body.count_cmi_for_profiles(expression_profile, db_profiles, abundance_profile, expression_bins,
                                                db_bins, abundance_bins)
             accepted_db_profiles, z_scores = body.statistical_testing(cmis, expression_profile, db_profiles,
                                                                       abundance_profile,
                                                                       expression_bins, db_bins, abundance_bins)
-            if eclip:
-                rbp_expression = body.get_rbp_expression(genes, output_format, expression_profile, accepted_db_profiles,
-                                                         db_annotations)
+            if regulator:
+                regulator_expression = body.get_rbp_expression(genes, output_format, expression_profile, accepted_db_profiles,
+                                                         db_annotations, species, tmp)
             else:
-                rbp_expression = None
+                regulator_expression = None
 
             body.visualize_output(accepted_db_profiles, db_profiles, db_annotations, cmis, draw_bins, max_draw_output,
-                                  output_name, rbp_expression)
+                                  output_name, regulator_expression)
 
             with open(output_name + '.out', 'w+') as f:
                 for i in range(len(accepted_db_profiles)):

@@ -31,10 +31,10 @@ def preprocess_db(database_names_file, first_col_is_genes, database_index_file, 
 
 
 def process_input(expression_file, database_name, input_format, output_format, expression_bins=10, abundance_bins=3,
-                  sep='\t', expression_column=1, tmp='tmp_ipage'):
+                  sep='\t', expression_column=1, species='human', tmp='tmp_ipage'):
     genes, expression_profile = preprocess.get_expression_profile(expression_file, expression_bins,
                                                                   input_format=input_format,
-                                                                  output_format=output_format, sep=sep,
+                                                                  output_format=output_format, species=species, sep=sep,
                                                                   expression_column=expression_column, tmp=tmp)
 
     db_file = '%s.ipage' % database_name
@@ -97,24 +97,11 @@ def statistical_testing(cmis, expression_profile, db_profiles, abundance_profile
     return accepted_db_profiles[rev_indices], z_scores[rev_indices]
 
 
-def get_rbp_expression(genes, input_format, expression_profile, accepted_db_profiles, db_annotations):
-    rbp_names = [db_annotations[i] for i in range(len(db_annotations))
-                 if accepted_db_profiles[i]]
-    genes_symbols = preprocess.change_accessions(genes, input_format, 'gene_symbol')
-    di = {el1: el2 for el1 in genes_symbols for el2 in rbp_names if el1 in el2}
-
-    rbp_expression = dict(zip([di[gene] for gene in genes_symbols if any(gene in name for name in rbp_names)],
-                              expression_profile[[any(gene in name for name in rbp_names) for gene in genes_symbols]]))
-    medium = sum(rbp_expression.values()) / len(rbp_expression)  # this is due to the possible lack of information
-    rbp_expression.update({el: medium for el in rbp_names if el not in rbp_expression})
-    return rbp_expression
-
-
-def get_rbp_expression(genes, output_format, expression_profile, accepted_db_profiles, db_annotations):
+def get_rbp_expression(genes, output_format, expression_profile, accepted_db_profiles, db_annotations, species, tmp):
     rbp_names = [db_annotations[i] for i in range(len(db_annotations))
                  if accepted_db_profiles[i]]
     rbp_names_clear = [name.replace('_', ' ').split()[0] for name in rbp_names]
-    genes_symbols = preprocess.change_accessions(genes, output_format, 'gene_symbol')
+    genes_symbols = preprocess.change_accessions(genes, output_format, 'gene_symbol', species, tmp)
 
     rbp_expression = dict(zip(rbp_names,
                               [expression_profile[genes_symbols.index(name)] for name in rbp_names_clear if

@@ -6,7 +6,7 @@ import MI
 import pandas as pd
 
 
-def change_accessions(ids, input_format, output_format, tmp='tmp_ipage'):  # refseq->ensemble->entrez;
+def change_accessions(ids, input_format, output_format, species, tmp='tmp_ipage'):  # refseq->ensemble->entrez;
     if input_format != output_format:
         mart_file = '%s/biomart_%s_%s.ipage.pickle' % (tmp, input_format, output_format)
         if os.path.isfile(mart_file) and os.stat(mart_file).st_size != 0:
@@ -14,11 +14,9 @@ def change_accessions(ids, input_format, output_format, tmp='tmp_ipage'):  # ref
                 input_to_output = pickle.load(f)
 
         else:
-            if input_format[:3] == 'mus' and output_format[:2] == 'mus':
+            if species == 'mouse':
                 dataset = pybiomart.Dataset(name='mmusculus_gene_ensembl', host='http://www.ensembl.org')
-                input_format = input_format[3:]
-                output_format = output_format[3:]
-            else:
+            elif species == 'human':
                 dataset = pybiomart.Dataset(name='hsapiens_gene_ensembl', host='http://www.ensembl.org')
             mart_attributes = {'enst': ['ensembl_transcript_id'], 'ensg': ['ensembl_gene_id'],
                                'refseq': ['refseq_mrna', 'refseq_mrna_predicted', 'refseq_ncrna',
@@ -46,7 +44,7 @@ def change_accessions(ids, input_format, output_format, tmp='tmp_ipage'):  # ref
 
 
 def get_expression_profile(expression_file, nbins=10, sep='\t', input_format=None,
-                           output_format=None, expression_column=1, tmp='tmp_ipage'):
+                           output_format=None, expression_column=1, species='human', tmp='tmp_ipage'):
     id_column = 0
     df = pd.read_csv(expression_file, sep=sep, skiprows=1, header=None)
     df = df[df.iloc[:, expression_column].notna()]
@@ -56,7 +54,7 @@ def get_expression_profile(expression_file, nbins=10, sep='\t', input_format=Non
     genes = list(df.iloc[:, id_column])
     genes = [gene.split('.')[0] for gene in genes]
     if input_format and output_format and input_format != output_format:
-        genes = change_accessions(genes, input_format, output_format, tmp)
+        genes = change_accessions(genes, input_format, output_format, species, tmp)
         gene_dict = dict(zip(genes, expression_profile))
         expression_profile = np.array([gene_dict[gene] for gene in gene_dict.keys() if gene != '-'])
         genes = [gene for gene in gene_dict.keys() if gene != '-']
@@ -104,7 +102,7 @@ def get_profiles(db_index_file, first_col_is_genes, db_names_file=None):
             for line in lines:
                 name = line.split('\t')[0]
                 if name in db_names:
-                    if len(line.split('\t')) >= 2:
+                    if len(line.split('\t')) > 1:
                         annotation = '; '.join(line.split('\t')[:2])
                     else:
                         annotation = name

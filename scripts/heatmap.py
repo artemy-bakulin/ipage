@@ -33,7 +33,7 @@ def add_colorbar(fig, ims, n):
         colorbar_names = ['genes']
         colorbar_images = [-1]
     elif n == 2:
-        colorbar_names = ['rbp', 'genes']
+        colorbar_names = ['Regulator', 'Genes']
         colorbar_images = [0, 1]
     for i in colorbar_images:
         cax = fig.add_subplot(gs[i // cols, i % cols])
