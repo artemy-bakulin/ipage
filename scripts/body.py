@@ -144,7 +144,7 @@ def visualize_output(accepted_db_profiles, db_profiles, db_annotations, cmis, dr
                      :max_draw_output // 2]
     p_names = up_regulated + down_regulated
 
-    for i in range(len(list(p_values.values())[0])):
+    for i in range(draw_bins):
         p_names = sorted(p_names, key=lambda x: p_values[x][i], reverse=True)
     p_values = [p_values[name] for name in p_names]
     if rbp_expression:

@@ -14,7 +14,12 @@ def change_accessions(ids, input_format, output_format, tmp='tmp_ipage'):  # ref
                 input_to_output = pickle.load(f)
 
         else:
-            dataset = pybiomart.Dataset(name='hsapiens_gene_ensembl', host='http://www.ensembl.org')
+            if input_format[:2] == 'mus' and output_format[:2] == 'mus':
+                dataset = pybiomart.Dataset(name='mmusculus_gene_ensembl', host='http://www.ensembl.org')
+                input_format = input_format[3:]
+                output_format = output_format[3:]
+            else:
+                dataset = pybiomart.Dataset(name='hsapiens_gene_ensembl', host='http://www.ensembl.org')
             mart_attributes = {'enst': ['ensembl_transcript_id'], 'ensg': ['ensembl_gene_id'],
                                'refseq': ['refseq_mrna', 'refseq_mrna_predicted', 'refseq_ncrna',
                                           'refseq_ncrna_predicted'], 'entrez': ['entrezgene_id'],
