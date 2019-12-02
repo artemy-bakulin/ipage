@@ -16,25 +16,29 @@ def preprocess(database_index_file, database_names_file=None, first_col_is_genes
                        min_pathway_length, child_unique_genes, parent_unique_genes, tmp)
 
 
-def read_expression_file(expression_file, sep, expression_column):
+def read_expression_file(expression_file, sep='\t', column=1):
     id_column = 0
+    expression_column = column
     df = pd.read_csv(expression_file, sep=sep, skiprows=1, header=None)
     df = df[df.iloc[:, expression_column].notna()]
     df = df.sort_values(by=df.columns[expression_column])
     expression_level = np.array(df.iloc[:, expression_column])
     genes = list(df.iloc[:, id_column])
-    return expression_level, genes
+    return genes, expression_level
 
 
-def ipage(expression_level, genes, database_name, output_name='stdout', input_format=None, output_format=None,
+def ipage(genes, expression_level, database_name, output_name='stdout', input_format=None, output_format=None,
           expression_bins=10, abundance_bins=3, species='human', draw_bins=15, max_draw_output=50, regulator=False,
           tmp='tmp_ipage'):
 
     db_bins = 2
 
     if output_name != 'stdout':
-        output_dir = '/'.join(output_name.split('/')[:-1])
-        output_file = output_name.split('/')[-1]
+        if len(output_name.split('/')) != 1:
+            output_dir = '/'.join(output_name.split('/')[:-1])
+        else:
+            output_dir = output_name
+            output_name += '/' + output_name
 
         if not os.path.isdir(output_dir):
             os.mkdir(output_dir)
@@ -140,7 +144,7 @@ if __name__ == '__main__':
         if args.column_with_stability == 'all':
             expression_columns = range(1, pd.read_csv(expression_file, sep=sep).shape[1])
         else:
-            expression_columns = (int(el) - 1 for el in expression_columns.split(','))
+            expression_columns = (int(el) for el in expression_columns.split(','))
 
         for expression_column in expression_columns:
             if args.output_name:
@@ -149,7 +153,7 @@ if __name__ == '__main__':
                 output_name = 'output_ipage/' + args.expression_file.split('/')[-1].split('.')[0]
             output_name += '.' + str(expression_column) if len(list(expression_columns)) > 1 else ''
 
-            expression_level, genes = read_expression_file(expression_file, sep, expression_column)
+            genes, expression_level = read_expression_file(expression_file, sep, expression_column)
 
             ipage(expression_level, genes, database_index_file, output_name, input_format, output_format, expression_bins,
                   abundance_bins, species, draw_bins, max_draw_output, regulator, tmp)

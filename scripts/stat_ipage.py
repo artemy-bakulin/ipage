@@ -39,6 +39,7 @@ def test_cond_mi(expression_profile, db_profile, abundance_profile, expression_b
     expression_shuffled_profile = expression_profile.copy()
     vectors_over = 0
     cmis = []
+    np.random.seed()
     for i in range(shuffles):
         np.random.shuffle(expression_shuffled_profile)
         new_cmi = MI.cond_mut_info(expression_shuffled_profile, db_profile, abundance_profile, expression_bins, db_bins, abundance_bins)
