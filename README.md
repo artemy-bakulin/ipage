@@ -94,13 +94,13 @@ If all columns are needed specify 'all'.
 
 Should be specified once more.
 
-**-db_format** database format
+**-db_ft** database format
 
 Takes ensg, enst, refseq, entrez, gene_symbol.
 Should be specified if database's and expression's file use different accessions. 
 Only human and mouse  ensemble, refseq and entrez are supported. 
 
-**-e_format** expression file format
+**-e_ft** expression file format
 
 Takes ensg, enst, refseq, entrez, gene_symbol.
 Should be specified if database's and expression's file use different accessions. 
@@ -108,9 +108,9 @@ Only human and mouse ensemble, refseq and entrez are supported.
 
 **-sp** species
 
-Takes human, mouse.
+Takes human, mouse. By default human.
 Should be specified if database's and expression's file use different accessions.
-Neede to correctly change between accessions. 
+Needed to correctly change accessions. 
 
 **-e_bins** expression bins
 
@@ -142,34 +142,34 @@ By default output  will be added to the directory './output_ipage'
 
 python3.6 scripts/ipage.py -preprocess -i test/human_ensembl_index.txt -g -n test/human_ensembl_names.txt -f
 
-python3.6 scripts/ipage.py -e bladder.exp -e_sep $'\t' -i test/human_ensembl_index.txt -db_format ensg -e_format refseq
+python3.6 scripts/ipage.py -e test/bladder.exp -e_sep $'\t' -i test/human_ensembl_index.txt -db_ft ensg -e_ft refseq
 
 ### Python module
 
 As a python module our program is to be imported with:
 
-**import ipage** 
+import ipage
 
 However, before that you need to specify path to ipage/scripts folder.
 
 We suggest a session run-time solution:
 
-**import sys**
+import sys
 
-**sys.path.insert(1,'ipage/scripts/')**
+sys.path.insert(1,'ipage/scripts/')
 
 Then the workflow consists of running these functions:
 
-**preprocess(database_index_file, database_names_file=None, first_col_is_genes=True, filter_redundant=False,
- tmp='tmp_ipage', min_pathway_length=6)**
+preprocess(database_index_file, database_names_file=None, first_col_is_genes=True, filter_redundant=False,
+ tmp='tmp_ipage', min_pathway_length=6)
 
 The call of the following function can be omitted, if you already have lists of genes and their respective expression values.
 
-**genes, expression_level = read_expression_file(expression_file, sep='\t', column=1)**
+genes, expression_level = read_expression_file(expression_file, sep='\t', column=1)
 
-**ipage(genes, expression_level, database_name, output_name='stdout', input_format=None, output_format=None,
+ipage_output = ipage(genes, expression_level, database_name, output_name='stdout', e_format=None, db_format=None,
           expression_bins=10, abundance_bins=3, species='human', draw_bins=15, max_draw_output=50, regulator=False,
-          tmp='tmp_ipage')**
+          tmp='tmp_ipage')
 
 Function draws a heatmap and returns a dataframe with information about significantly deregulated regulons.
 
@@ -179,14 +179,14 @@ Note: by default the output is 'stdout' which means that it isn't saved.
 
 Each time iPAGE runs it creates a temporary folder (tmp_ipage, though, its name can be overwritten). 
 It contains information which can be used in later session and save time. 
-Consider deleting it only if it is overloaded.
+Consider keeping it.
 
 
-
+**The output**
 
 The output consists of two files:
 
-1)The list of significant pathways with CMI and z-score.
+1)The table of significant pathways with CMI and z-score.
 
 2)The heatmap with top hits.
 

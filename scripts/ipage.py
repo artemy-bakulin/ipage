@@ -27,7 +27,7 @@ def read_expression_file(expression_file, sep='\t', column=1):
     return genes, expression_level
 
 
-def ipage(genes, expression_level, database_name, output_name='stdout', input_format=None, output_format=None,
+def ipage(genes, expression_level, database_name, output_name='stdout', e_format=None, db_format=None,
           expression_bins=10, abundance_bins=3, species='human', draw_bins=15, max_draw_output=50, regulator=False,
           tmp='tmp_ipage'):
 
@@ -44,7 +44,7 @@ def ipage(genes, expression_level, database_name, output_name='stdout', input_fo
             os.mkdir(output_dir)
 
     expression_profile, db_names, db_profiles, db_annotations, abundance_profile, genes = body.process_input(
-        expression_level, genes, database_name, input_format, output_format, expression_bins, abundance_bins,
+        expression_level, genes, database_name, e_format, db_format, expression_bins, abundance_bins,
         species, tmp)
 
     cmis = body.count_cmi_for_profiles(expression_profile, db_profiles, abundance_profile, expression_bins,
@@ -53,7 +53,7 @@ def ipage(genes, expression_level, database_name, output_name='stdout', input_fo
                                                               abundance_profile,
                                                               expression_bins, db_bins, abundance_bins)
     if regulator:
-        regulator_expression = body.get_rbp_expression(genes, output_format, expression_profile,
+        regulator_expression = body.get_rbp_expression(genes, db_format, expression_profile,
                                                        accepted_db_profiles, db_names, db_annotations, species,
                                                        tmp)
     else:
@@ -82,9 +82,9 @@ if __name__ == '__main__':
     parser.add_argument('-e_col', '--column_with_stability', type=str, default='2',
                         help='Column in expression file of required stability values')
 
-    parser.add_argument('-db_format', '--database_format', type=str, default='ensg',
+    parser.add_argument('-db_ft', '--database_format', type=str, default='ensg',
                         help='The database format')
-    parser.add_argument('-e_format', '--expression_file_format', type=str, default='ensg',
+    parser.add_argument('-e_ft', '--expression_file_format', type=str, default='ensg',
                         help='The expression file format')
 
     parser.add_argument('-o', '--output_name', type=str,
