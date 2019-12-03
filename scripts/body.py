@@ -9,7 +9,6 @@ import pickle
 import scipy.sparse as sparse
 
 
-
 def preprocess_db(database_names_file, first_col_is_genes, database_index_file, filter_redundant, min_pathway_length,
                   child_unique_genes, parent_unique_genes, tmp):
     database_name = database_index_file.split('/')[-1].split('.')[0]

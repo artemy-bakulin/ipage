@@ -47,8 +47,12 @@ def change_accessions(ids, input_format, output_format, species, tmp):  # refseq
 
 
 def get_expression_profile(expression_level, genes, expression_bins, input_format, output_format, species, tmp):
-    expression_level = np.array(expression_level)
+    df = pd.DataFrame({'genes': genes, 'expression_level': expression_level})
+    df = df[df.iloc[:, 1].notna()]
+    df = df.sort_values(by=df.columns[1])
+    expression_level = np.array(df.iloc[:, 1])
     expression_profile = MI.discretize(expression_level, expression_bins)
+    genes = list(df.iloc[:, 0])
     genes = [gene.split('.')[0] for gene in genes]
     if input_format and output_format and input_format != output_format:
         genes = change_accessions(genes, input_format, output_format, species, tmp)

@@ -3,7 +3,6 @@ import argparse
 import body
 import os
 import pandas as pd
-import numpy as np
 
 
 def preprocess(database_index_file, database_names_file=None, first_col_is_genes=True, filter_redundant=False,
@@ -20,10 +19,8 @@ def read_expression_file(expression_file, sep='\t', column=1):
     id_column = 0
     expression_column = column
     df = pd.read_csv(expression_file, sep=sep, skiprows=1, header=None)
-    df = df[df.iloc[:, expression_column].notna()]
-    df = df.sort_values(by=df.columns[expression_column])
-    expression_level = np.array(df.iloc[:, expression_column])
-    genes = list(df.iloc[:, id_column])
+    genes = df.iloc[:, id_column]
+    expression_level = df.iloc[:, expression_column]
     return genes, expression_level
 
 
@@ -42,6 +39,7 @@ def ipage(genes, expression_level, database_name, output_name='stdout', e_format
 
         if not os.path.isdir(output_dir):
             os.mkdir(output_dir)
+
 
     expression_profile, db_names, db_profiles, db_annotations, abundance_profile, genes = body.process_input(
         expression_level, genes, database_name, e_format, db_format, expression_bins, abundance_bins,
