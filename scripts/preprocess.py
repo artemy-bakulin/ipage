@@ -23,8 +23,11 @@ def change_accessions(ids, input_format, output_format, species, tmp):  # refseq
                                           'refseq_ncrna_predicted'], 'entrez': ['entrezgene_id'],
                                'gene_symbol': ['entrezgene_accession'], 'ext': ['external_gene_name']}
             input_to_output = {}
+            output_attributes = mart_attributes[output_format]
+            if output_format == 'refseq':
+                output_attributes = [output_attributes[0]]
             for mart in mart_attributes[input_format]:
-                df1 = dataset.query(attributes=[mart] + mart_attributes[output_format])
+                df1 = dataset.query(attributes=[mart] + output_attributes)
                 df1 = df1[df1.iloc[:, 0].notna()]
                 df1 = df1[df1.iloc[:, 1].notna()]
                 if input_format == 'entrez' or output_format == 'entrez':

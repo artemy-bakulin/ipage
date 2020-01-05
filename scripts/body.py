@@ -10,7 +10,7 @@ import scipy.sparse as sparse
 
 
 def preprocess_db(database_names_file, first_col_is_genes, database_index_file, filter_redundant, min_pathway_length,
-                  child_unique_genes, parent_unique_genes, tmp):
+                  child_unique_genes, tmp):
     database_name = database_index_file.split('/')[-1].split('.')[0]
 
     db_names, db_profiles, db_annotations, db_genes = preprocess.get_profiles(database_index_file, first_col_is_genes,
@@ -19,8 +19,7 @@ def preprocess_db(database_names_file, first_col_is_genes, database_index_file, 
     if filter_redundant:
         db_names, db_annotations, db_profiles = filter_db.non_redundancy_sort_pre(db_names, db_annotations, db_profiles,
                                                                                   min_pathway_length,
-                                                                                  child_unique_genes,
-                                                                                  parent_unique_genes)
+                                                                                  child_unique_genes)
     with open("{0}/{1}.ipage.pickle".format(tmp, database_name), "wb+") as f:
         pickle.dump(db_names, f, pickle.HIGHEST_PROTOCOL)
         pickle.dump(db_annotations, f, pickle.HIGHEST_PROTOCOL)
@@ -41,7 +40,6 @@ def process_input(expression_level, genes, database_index_file, input_format, ou
         db_genes = pickle.load(f)
     sparse_profiles = sparse.load_npz("{0}/{1}.ipage.npz".format(tmp, database_name))
     db_profiles = np.array(sparse_profiles.todense())
-
     intersected_genes = set(genes) & set(db_genes)
     db_genes_bool = [gene in intersected_genes for gene in db_genes]
     db_genes = [gene for gene in db_genes if gene in intersected_genes]

@@ -8,11 +8,10 @@ import pandas as pd
 def preprocess(database_index_file, database_names_file=None, first_col_is_genes=True, filter_redundant=False,
                tmp='tmp_ipage', min_pathway_length=6):
     child_unique_genes = 0.2
-    parent_unique_genes = 0.4
     if not os.path.isdir(tmp):
         os.mkdir(tmp)
     body.preprocess_db(database_names_file, first_col_is_genes, database_index_file, filter_redundant,
-                       min_pathway_length, child_unique_genes, parent_unique_genes, tmp)
+                       min_pathway_length, child_unique_genes, tmp)
 
 
 def read_expression_file(expression_file, sep='\t', column=1):

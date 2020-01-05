@@ -41,8 +41,12 @@ def add_colorbar(fig, ims, n):
         cax.set_title(colorbar_names[i], fontsize=10)
 
 
-def draw_heatmap(names, values, output_name, expression=None):
-    df = pd.DataFrame(values, index=names)
+def draw_heatmap(names, values, output_name='output_ipage', expression=None):
+
+    if type(names[0]) == str:
+        df = pd.DataFrame(values, index=names)
+    else:
+        df = pd.DataFrame(values, index=names[0], columns=names[1])
 
     if expression:
         df.insert(0, 'rbp', expression)
@@ -63,10 +67,16 @@ def draw_heatmap(names, values, output_name, expression=None):
 
     ims = columnwise_heatmap(df.values, ax=ax, aspect="auto", expression=bool(expression))
 
-    ax.set(xticks=np.arange(len(df.columns)), yticks=np.arange(len(df)),
-           xticklabels=[''] * len(df.columns), yticklabels=df.index)
-    ax.tick_params(bottom=False, top=False,
-                   labelbottom=False, labeltop=True, left=False)
+    if type(names[0]) == str:
+        ax.set(xticks=np.arange(len(df.columns)), yticks=np.arange(len(df)),
+               xticklabels=[''] * len(df.columns), yticklabels=df.index)
+    else:
+        ax.set(xticks=np.arange(len(df.columns)), yticks=np.arange(len(df)),
+               xticklabels=df.columns, yticklabels=df.index)
+        plt.xticks(rotation=90)
+
+    # ax.tick_params(bottom=False, top=False,
+    #               labelbottom=False, labeltop=True, left=False)
     if expression:
         n = 2
     else:
