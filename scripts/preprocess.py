@@ -54,7 +54,13 @@ def get_expression_profile(expression_level, genes, expression_bins, input_forma
     df = df[df.iloc[:, 1].notna()]
     df = df.sort_values(by=df.columns[1])
     expression_level = np.array(df.iloc[:, 1])
-    expression_profile = MI.discretize(expression_level, expression_bins)
+    if np.count_nonzero(expression_level<0)!=0 and np.count_nonzero(expression_level>=0)!=0:
+        left = MI.discretize(expression_level[expression_level < 0], expression_bins // 2)
+        right = MI.discretize(expression_level[expression_level >= 0], expression_bins // 2)
+        right += expression_bins // 2
+        expression_profile = np.concatenate((left, right))
+    else:
+        expression_profile = MI.discretize(expression_level[expression_level >= 0], expression_bins // 2)
     genes = list(df.iloc[:, 0])
     genes = [gene.split('.')[0] for gene in genes]
     if input_format and output_format and input_format != output_format:

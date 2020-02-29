@@ -52,6 +52,14 @@ def process_input(expression_level, genes, database_index_file, input_format, ou
     indices = np.array([db_genes.index(gene) for gene in genes])
     db_profiles = db_profiles[:, indices]
     abundance_profile = db_profiles.sum(axis=0)
+
+    # delete genes that do not belong to any regulon
+    non_zero_pos = np.where(db_profiles.sum(0) != 0)[0]
+    expression_profile = expression_profile[non_zero_pos]
+    db_profiles = db_profiles[:, non_zero_pos]
+    abundance_profile = abundance_profile[non_zero_pos]
+    genes = [genes[i] for i in genes]
+
     abundance_profile = MI.discretize(abundance_profile, abundance_bins)
     return expression_profile, db_names, db_profiles, db_annotations, abundance_profile, genes
 
