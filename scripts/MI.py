@@ -27,6 +27,14 @@ def discretize(inp_array, bins, noise_std=0.000000001, new_seed=False):
     return digitized
 
 
+def discretize_equal_size(profile, nbins):
+    numbers = [1]+[int(1.2 * i) for i in range(nbins-1)]
+    cumulative = [sum(numbers[:i]) for i in range(2, len(numbers))]
+    discrete = np.digitize(profile, cumulative)
+    discrete -= 1
+    return discrete
+
+
 # to check resolution of the respective data types
 # do np.finfo(np.float32).resolution: 1e-06
 # or np.finfo(np.float64).resolution: 1e-06

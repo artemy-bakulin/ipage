@@ -54,13 +54,13 @@ def process_input(expression_level, genes, database_index_file, input_format, ou
     abundance_profile = db_profiles.sum(axis=0)
 
     # delete genes that do not belong to any regulon
-    non_zero_pos = np.where(db_profiles.sum(0) != 0)[0]
+    non_zero_pos = np.where(abundance_profile != 0)[0]
     expression_profile = expression_profile[non_zero_pos]
     db_profiles = db_profiles[:, non_zero_pos]
     abundance_profile = abundance_profile[non_zero_pos]
-    genes = [genes[i] for i in genes]
+    genes = [genes[i] for i in non_zero_pos]
 
-    abundance_profile = MI.discretize(abundance_profile, abundance_bins)
+    abundance_profile = MI.discretize_equal_size(abundance_profile, abundance_bins)
     return expression_profile, db_names, db_profiles, db_annotations, abundance_profile, genes
 
 
@@ -108,11 +108,7 @@ def get_rbp_expression(genes, output_format, expression_profile, accepted_db_pro
     rbp_expression = dict(zip(rbp_annotations,
                               [expression_profile[genes_symbols.index(name)] for name in rbp_names
                                if name in genes_symbols]))
-    if len(rbp_expression) != 0:
-        medium = sum(rbp_expression.values()) / len(rbp_expression)  # this is due to the possible lack of information
-    else:
-        medium = 0
-    rbp_expression.update({el: medium for el in rbp_annotations if el not in rbp_expression})
+    rbp_expression.update({el: np.nan for el in rbp_annotations if el not in rbp_expression})
     return rbp_expression
 
 
@@ -138,7 +134,7 @@ def produce_output(accepted_db_profiles, db_profiles, db_names, db_annotations, 
     if rbp_expression:
         rbp_expression = [rbp_expression[name] for name in p_names]
 
-    if len(p_values) != 0:
+    if len(p_values) != 0 and output_name != 'shut':
         heatmap.draw_heatmap(p_names, p_values, output_name, rbp_expression)
     output = pd.DataFrame(columns=['Group', 'CMI', 'Z-score', 'Regulation'])
     j = 0

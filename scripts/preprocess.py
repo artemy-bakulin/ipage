@@ -21,7 +21,7 @@ def change_accessions(ids, input_format, output_format, species, tmp):  # refseq
             mart_attributes = {'enst': ['ensembl_transcript_id'], 'ensg': ['ensembl_gene_id'],
                                'refseq': ['refseq_mrna', 'refseq_mrna_predicted', 'refseq_ncrna',
                                           'refseq_ncrna_predicted'], 'entrez': ['entrezgene_id'],
-                               'gene_symbol': ['entrezgene_accession'], 'ext': ['external_gene_name']}
+                               'gs': ['entrezgene_accession'], 'ext': ['external_gene_name']}
             input_to_output = {}
             output_attributes = mart_attributes[output_format]
             if output_format == 'refseq':

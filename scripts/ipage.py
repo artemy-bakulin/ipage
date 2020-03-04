@@ -23,13 +23,13 @@ def read_expression_file(expression_file, sep='\t', column=1):
     return genes, expression_level
 
 
-def ipage(genes, expression_level, database_name, output_name='stdout', e_format=None, db_format=None,
-          expression_bins=10, abundance_bins=3, species='human', draw_bins=15, max_draw_output=50, regulator=False,
+def ipage(genes, expression_level, database_name, output_name='stdout', e_ft=None, db_ft=None,
+          e_bins=10, freq_bins=10, species='human', draw_bins=15, max_draw_output=50, regulator=False,
           tmp='tmp_ipage'):
 
     db_bins = 2
 
-    if output_name != 'stdout':
+    if output_name != 'stdout' and output_name != 'shut':
         if len(output_name.split('/')) != 1:
             output_dir = '/'.join(output_name.split('/')[:-1])
         else:
@@ -41,16 +41,16 @@ def ipage(genes, expression_level, database_name, output_name='stdout', e_format
 
 
     expression_profile, db_names, db_profiles, db_annotations, abundance_profile, genes = body.process_input(
-        expression_level, genes, database_name, e_format, db_format, expression_bins, abundance_bins,
+        expression_level, genes, database_name, e_ft, db_ft, e_bins, freq_bins,
         species, tmp)
 
-    cmis = body.count_cmi_for_profiles(expression_profile, db_profiles, abundance_profile, expression_bins,
-                                       db_bins, abundance_bins)
+    cmis = body.count_cmi_for_profiles(expression_profile, db_profiles, abundance_profile, e_bins,
+                                       db_bins, freq_bins)
     accepted_db_profiles, z_scores = body.statistical_testing(cmis, expression_profile, db_profiles,
                                                               abundance_profile,
-                                                              expression_bins, db_bins, abundance_bins)
+                                                              e_bins, db_bins, freq_bins)
     if regulator:
-        regulator_expression = body.get_rbp_expression(genes, db_format, expression_profile,
+        regulator_expression = body.get_rbp_expression(genes, db_ft, expression_profile,
                                                        accepted_db_profiles, db_names, db_annotations, species,
                                                        tmp)
     else:
