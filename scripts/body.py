@@ -146,6 +146,6 @@ def produce_output(accepted_db_profiles, db_profiles, db_names, db_annotations, 
         i = db_annotations.index(name)
         output.loc[j] = [db_names[i], str(cmis[i])[:8], str(z_scores[i]), 'DOWN']
         j += 1
-    if output_name != 'stdout':
+    if output_name != 'stdout' and output_name != 'shut':
         output.to_csv(output_name + '.out', index=False, sep='\t')
     return output
