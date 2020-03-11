@@ -65,17 +65,20 @@ def process_input(expression_level, genes, database_index_file, input_format, ou
 
 
 def count_cmi_for_profiles(expression_profile, db_profiles, abundance_profile, expression_bins, db_bins,
-                           abundance_bins):
+                           abundance_bins, function):
     cmis = []
     for profile in db_profiles:
-        cmi = MI.cond_mut_info(expression_profile, profile, abundance_profile, expression_bins, db_bins, abundance_bins)
+        if function == 'cmi':
+            cmi = MI.cond_mut_info(expression_profile, profile, abundance_profile, expression_bins, db_bins, abundance_bins)
+        elif function == 'mi':
+            cmi = MI.cond_mut_info(expression_profile, profile, expression_bins, db_bins)
         cmis.append(cmi)
     cmis = np.array(cmis)
     return cmis
 
 
 def statistical_testing(cmis, expression_profile, db_profiles, abundance_profile, expression_bins, db_bins,
-                        abundance_bins):
+                        abundance_bins, function):
     indices = np.argsort(cmis)[::-1]
     rev_indices = np.argsort(indices)
     db_profiles_ = db_profiles[indices]
@@ -86,7 +89,7 @@ def statistical_testing(cmis, expression_profile, db_profiles, abundance_profile
     for profile in db_profiles_:
         z_score, vector_accepted = stat_ipage.test_cond_mi(expression_profile, profile, abundance_profile,
                                                            expression_bins,
-                                                           db_bins, abundance_bins, shuffles=1000)
+                                                           db_bins, abundance_bins, shuffles=1000, function=function)
         if not vector_accepted:
             accepted_db_profiles[i] = False
             false_hits += 1

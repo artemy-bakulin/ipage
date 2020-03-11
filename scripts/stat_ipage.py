@@ -33,8 +33,12 @@ def get_p_values(profile, nbins):
     return p_values
 
 
-def test_cond_mi(expression_profile, db_profile, abundance_profile, expression_bins, db_bins, abundance_bins, shuffles=10000, max_p=0.005):
-    cmi = MI.cond_mut_info(expression_profile, db_profile, abundance_profile, expression_bins, db_bins, abundance_bins)
+def test_cond_mi(expression_profile, db_profile, abundance_profile, expression_bins, db_bins, abundance_bins,
+                 shuffles=10000, max_p=0.005, function='cmi'):
+    if function == 'cmi':
+        cmi = MI.cond_mut_info(expression_profile, db_profile, abundance_profile, expression_bins, db_bins, abundance_bins)
+    elif function == 'mi':
+        cmi = MI.cond_mut_info(expression_profile, db_profile, expression_bins, db_bins)
     max_vectors_over = shuffles*max_p
     expression_shuffled_profile = expression_profile.copy()
     vectors_over = 0
@@ -42,7 +46,13 @@ def test_cond_mi(expression_profile, db_profile, abundance_profile, expression_b
     np.random.seed()
     for i in range(shuffles):
         np.random.shuffle(expression_shuffled_profile)
-        new_cmi = MI.cond_mut_info(expression_shuffled_profile, db_profile, abundance_profile, expression_bins, db_bins, abundance_bins)
+
+        if function == 'cmi':
+            new_cmi = MI.cond_mut_info(expression_shuffled_profile, db_profile, abundance_profile, expression_bins,
+                                       db_bins, abundance_bins)
+        elif function == 'mi':
+            new_cmi = MI.cond_mut_info(expression_shuffled_profile, db_profile, expression_bins, db_bins)
+
         cmis.append(new_cmi)
         if cmi <= new_cmi:
             vectors_over += 1

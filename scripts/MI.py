@@ -28,9 +28,11 @@ def discretize(inp_array, bins, noise_std=0.000000001, new_seed=False):
 
 
 def discretize_equal_size(profile, nbins):
-    numbers = [1]+[int(1.2 * i) for i in range(nbins-1)]
-    cumulative = [sum(numbers[:i]) for i in range(2, len(numbers))]
-    discrete = np.digitize(profile, cumulative)
+    if nbins != 1:
+        bins = [(np.percentile(profile, 99) - min(profile)) // nbins * i for i in range(1, nbins)]
+    else:
+        bins = [0]
+    discrete = np.digitize(profile, bins)
     discrete -= 1
     return discrete
 
@@ -135,6 +137,7 @@ def mut_info_normalized(X, Y, x_bins,y_bins, base=None):
 # to each summand to decompose it
 @numba.jit(cache=True, nopython=True, nogil=True)
 def cond_mut_info(X, Y, Z, x_bins, y_bins, z_bins, base=None):
+
     c_yz = histogram_2D(Y, Z, y_bins, z_bins)
     flatten_c_yz = c_yz.flatten()
     H_yz = entropy_empirical(flatten_c_yz, flatten_c_yz.sum(), base=base)
