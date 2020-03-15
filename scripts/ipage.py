@@ -25,7 +25,7 @@ def read_expression_file(expression_file, sep='\t', column=1):
 
 def ipage(genes, expression_level, database_name, output_name='stdout', e_ft=None, db_ft=None,
           e_bins=10, freq_bins=10, species='human', draw_bins=15, max_draw_output=50, regulator=False,
-          tmp='tmp_ipage', function='cmi'):
+          tmp='tmp_ipage', function='cmi', p_value=0.01):
 
     db_bins = 2
 
@@ -47,7 +47,7 @@ def ipage(genes, expression_level, database_name, output_name='stdout', e_ft=Non
     cmis = body.count_cmi_for_profiles(expression_profile, db_profiles, abundance_profile, e_bins,
                                        db_bins, freq_bins, function)
     accepted_db_profiles, z_scores = body.statistical_testing(cmis, expression_profile, db_profiles,
-                                                              abundance_profile,
+                                                              abundance_profile, p_value,
                                                               e_bins, db_bins, freq_bins, function)
     if regulator:
         regulator_expression = body.get_rbp_expression(genes, db_ft, expression_profile,

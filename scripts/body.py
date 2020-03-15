@@ -28,8 +28,8 @@ def preprocess_db(database_names_file, first_col_is_genes, database_index_file, 
     sparse.save_npz("{0}/{1}.ipage.npz".format(tmp, database_name), sparse_profiles, compressed=True)
 
 
-def process_input(expression_level, genes, database_index_file, input_format, output_format, expression_bins, abundance_bins,
-                  species, tmp):
+def process_input(expression_level, genes, database_index_file, input_format, output_format, expression_bins,
+                  abundance_bins, species, tmp):
 
     expression_profile, genes = preprocess.get_expression_profile(expression_level, genes, expression_bins,
                                                                   input_format, output_format, species, tmp)
@@ -71,14 +71,14 @@ def count_cmi_for_profiles(expression_profile, db_profiles, abundance_profile, e
         if function == 'cmi':
             cmi = MI.cond_mut_info(expression_profile, profile, abundance_profile, expression_bins, db_bins, abundance_bins)
         elif function == 'mi':
-            cmi = MI.cond_mut_info(expression_profile, profile, expression_bins, db_bins)
+            cmi = MI.mut_info(expression_profile, profile, expression_bins, db_bins)
         cmis.append(cmi)
     cmis = np.array(cmis)
     return cmis
 
 
 def statistical_testing(cmis, expression_profile, db_profiles, abundance_profile, expression_bins, db_bins,
-                        abundance_bins, function):
+                        abundance_bins, function, p_value=0.01):
     indices = np.argsort(cmis)[::-1]
     rev_indices = np.argsort(indices)
     db_profiles_ = db_profiles[indices]
@@ -88,8 +88,8 @@ def statistical_testing(cmis, expression_profile, db_profiles, abundance_profile
     false_hits = 0
     for profile in db_profiles_:
         z_score, vector_accepted = stat_ipage.test_cond_mi(expression_profile, profile, abundance_profile,
-                                                           expression_bins,
-                                                           db_bins, abundance_bins, shuffles=1000, function=function)
+                                                           expression_bins, db_bins, abundance_bins,
+                                                           p_value=p_value, shuffles=1000, function=function)
         if not vector_accepted:
             accepted_db_profiles[i] = False
             false_hits += 1
@@ -121,7 +121,6 @@ def produce_output(accepted_db_profiles, db_profiles, db_names, db_annotations, 
     for i in range(len(db_profiles)):
         if accepted_db_profiles[i]:
             p_values[db_annotations[i]] = stat_ipage.get_p_values(db_profiles[i], draw_bins)
-    max_draw_output = min(max_draw_output, len(p_values))
     up_regulated_func = lambda x: sum(p_values[x][:len(p_values[x]) // 2]) <= sum(p_values[x][len(p_values[x]) // 2:])
     down_regulated_func = lambda x: sum(p_values[x][:len(p_values[x]) // 2]) >= sum(p_values[x][len(p_values[x]) // 2:])
     order_to_cmi = lambda x: cmis[db_annotations.index(x)]
