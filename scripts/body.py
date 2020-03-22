@@ -107,7 +107,7 @@ def get_rbp_expression(genes, output_format, expression_profile, accepted_db_pro
     rbp_names = [db_names[i].replace('_', ' ').split()[0] for i in range(len(db_names)) if accepted_db_profiles[i]]
     rbp_annotations = [db_annotations[i] for i in range(len(db_names)) if accepted_db_profiles[i]]
 
-    genes_symbols = preprocess.change_accessions(genes, output_format, 'gene_symbol', species, tmp)
+    genes_symbols = preprocess.change_accessions(genes, output_format, 'gs', species, tmp)
     rbp_expression = dict(zip(rbp_annotations,
                               [expression_profile[genes_symbols.index(name)] for name in rbp_names
                                if name in genes_symbols]))

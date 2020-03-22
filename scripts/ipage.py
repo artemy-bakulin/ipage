@@ -47,8 +47,8 @@ def ipage(genes, expression_level, database_name, output_name='stdout', e_ft=Non
     cmis = body.count_cmi_for_profiles(expression_profile, db_profiles, abundance_profile, e_bins,
                                        db_bins, freq_bins, function)
     accepted_db_profiles, z_scores = body.statistical_testing(cmis, expression_profile, db_profiles,
-                                                              abundance_profile, p_value,
-                                                              e_bins, db_bins, freq_bins, function)
+                                                              abundance_profile,
+                                                              e_bins, db_bins, freq_bins, function, p_value)
     if regulator:
         regulator_expression = body.get_rbp_expression(genes, db_ft, expression_profile,
                                                        accepted_db_profiles, db_names, db_annotations, species,

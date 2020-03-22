@@ -18,6 +18,7 @@ def change_accessions(ids, input_format, output_format, species, tmp):  # refseq
                 dataset = pybiomart.Dataset(name='mmusculus_gene_ensembl', host='http://www.ensembl.org')
             elif species == 'human':
                 dataset = pybiomart.Dataset(name='hsapiens_gene_ensembl', host='http://www.ensembl.org')
+            # print(*dataset.attributes.keys(), sep='\n')
             mart_attributes = {'enst': ['ensembl_transcript_id'], 'ensg': ['ensembl_gene_id'],
                                'refseq': ['refseq_mrna', 'refseq_mrna_predicted', 'refseq_ncrna',
                                           'refseq_ncrna_predicted'], 'entrez': ['entrezgene_id'],
