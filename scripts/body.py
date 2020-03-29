@@ -104,7 +104,7 @@ def statistical_testing(cmis, expression_profile, db_profiles, abundance_profile
 
 
 def get_rbp_expression(genes, output_format, expression_profile, accepted_db_profiles, db_names, db_annotations, species, tmp):
-    rbp_names = [db_names[i].replace('_', ' ').split()[0] for i in range(len(db_names)) if accepted_db_profiles[i]]
+    rbp_names = [db_names[i].split('_')[0] for i in range(len(db_names)) if accepted_db_profiles[i]]
     rbp_annotations = [db_annotations[i] for i in range(len(db_names)) if accepted_db_profiles[i]]
 
     genes_symbols = preprocess.change_accessions(genes, output_format, 'gs', species, tmp)

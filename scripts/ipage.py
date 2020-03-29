@@ -24,7 +24,7 @@ def read_expression_file(expression_file, sep='\t', column=1):
 
 
 def ipage(genes, expression_level, database_name, output_name='stdout', e_ft=None, db_ft=None,
-          e_bins=10, freq_bins=10, species='human', draw_bins=15, max_draw_output=50, regulator=False,
+          e_bins=10, freq_bins=3, species='human', draw_bins=15, max_draw_output=50, regulator=False,
           tmp='tmp_ipage', function='cmi', p_value=0.01):
 
     db_bins = 2
