@@ -7,7 +7,7 @@ def calculate_matrix(sparse, db_sums, child_unique_genes):
     matrix = np.zeros((length, length), dtype=np.int8)
 
     for i in range(length):
-        matrix[i] = [len(sparse[i] - sparse[j]) / db_sums[i] < 0.2 for j in range(length)]
+        matrix[i] = [len(sparse[i] - sparse[j]) / db_sums[i] < child_unique_genes for j in range(length)]
 
     np.fill_diagonal(matrix, 0)
     matrix = np.transpose(matrix)

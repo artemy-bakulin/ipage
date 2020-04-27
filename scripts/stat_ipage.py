@@ -33,8 +33,8 @@ def get_p_values(profile, nbins):
     return p_values
 
 
-def test_cond_mi(expression_profile, db_profile, abundance_profile, expression_bins, db_bins, abundance_bins,
-                 shuffles=10000, p_value=0.01, function='cmi'):
+def test_cond_mi(expression_profile, db_profile, abundance_profile=None, expression_bins=10, db_bins=2, abundance_bins=3,
+                 shuffles=1000, p_value=0.01, function='cmi'):
     if function == 'cmi':
         cmi = MI.cond_mut_info(expression_profile, db_profile, abundance_profile, expression_bins, db_bins, abundance_bins)
     elif function == 'mi':

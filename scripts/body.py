@@ -5,8 +5,6 @@ import preprocess
 import MI
 import numpy as np
 import pandas as pd
-import pickle
-import scipy.sparse as sparse
 
 
 def preprocess_db(database_names_file, first_col_is_genes, database_index_file, filter_redundant, min_pathway_length,
@@ -18,14 +16,8 @@ def preprocess_db(database_names_file, first_col_is_genes, database_index_file, 
 
     if filter_redundant:
         db_names, db_annotations, db_profiles = filter_db.non_redundancy_sort_pre(db_names, db_annotations, db_profiles,
-                                                                                  min_pathway_length,
-                                                                                  child_unique_genes)
-    with open("{0}/{1}.ipage.pickle".format(tmp, database_name), "wb+") as f:
-        pickle.dump(db_names, f, pickle.HIGHEST_PROTOCOL)
-        pickle.dump(db_annotations, f, pickle.HIGHEST_PROTOCOL)
-        pickle.dump(db_genes, f, pickle.HIGHEST_PROTOCOL)
-    sparse_profiles = sparse.csr_matrix(db_profiles)
-    sparse.save_npz("{0}/{1}.ipage.npz".format(tmp, database_name), sparse_profiles, compressed=True)
+                                                                                  min_pathway_length, child_unique_genes)
+    preprocess.dump_database(db_names, db_annotations, db_genes, db_profiles, database_name, tmp)
 
 
 def process_input(expression_level, genes, database_index_file, input_format, output_format, expression_bins,
@@ -34,33 +26,13 @@ def process_input(expression_level, genes, database_index_file, input_format, ou
     expression_profile, genes = preprocess.get_expression_profile(expression_level, genes, expression_bins,
                                                                   input_format, output_format, species, tmp)
     database_name = database_index_file.split('/')[-1].split('.')[0]
-    with open("{0}/{1}.ipage.pickle".format(tmp, database_name), 'rb') as f:
-        db_names = pickle.load(f)
-        db_annotations = pickle.load(f)
-        db_genes = pickle.load(f)
-    sparse_profiles = sparse.load_npz("{0}/{1}.ipage.npz".format(tmp, database_name))
-    db_profiles = np.array(sparse_profiles.todense())
-    intersected_genes = set(genes) & set(db_genes)
-    db_genes_bool = [gene in intersected_genes for gene in db_genes]
-    db_genes = [gene for gene in db_genes if gene in intersected_genes]
-    genes_bool = [gene in intersected_genes for gene in genes]
-    genes = [gene for gene in genes if gene in intersected_genes]
+    db_names, db_annotations, db_genes, db_profiles = preprocess.load_database(database_name, tmp)
 
-    db_profiles = db_profiles[:, db_genes_bool]
-    expression_profile = expression_profile[genes_bool]
+    genes, expression_profile, db_profiles = preprocess.sort_genes(genes, db_genes, expression_profile, db_profiles)
 
-    indices = np.array([db_genes.index(gene) for gene in genes])
-    db_profiles = db_profiles[:, indices]
-    abundance_profile = db_profiles.sum(axis=0)
-
-    # delete genes that do not belong to any regulon
-    non_zero_pos = np.where(abundance_profile != 0)[0]
-    expression_profile = expression_profile[non_zero_pos]
-    db_profiles = db_profiles[:, non_zero_pos]
-    abundance_profile = abundance_profile[non_zero_pos]
-    genes = [genes[i] for i in non_zero_pos]
-
+    abundance_profile = db_profiles.sum(0)
     abundance_profile = MI.discretize_equal_size(abundance_profile, abundance_bins)
+
     return expression_profile, db_names, db_profiles, db_annotations, abundance_profile, genes
 
 
@@ -89,7 +61,7 @@ def statistical_testing(cmis, expression_profile, db_profiles, abundance_profile
     for profile in db_profiles_:
         z_score, vector_accepted = stat_ipage.test_cond_mi(expression_profile, profile, abundance_profile,
                                                            expression_bins, db_bins, abundance_bins,
-                                                           p_value=p_value, shuffles=1000, function=function)
+                                                           p_value=p_value, function=function)
         if not vector_accepted:
             accepted_db_profiles[i] = False
             false_hits += 1

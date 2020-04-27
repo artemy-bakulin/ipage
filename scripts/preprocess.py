@@ -4,6 +4,7 @@ import pybiomart
 import pickle
 import MI
 import pandas as pd
+import scipy.sparse as sparse
 
 
 def change_accessions(ids, input_format, output_format, species, tmp):  # refseq->ensemble->entrez;
@@ -55,13 +56,14 @@ def get_expression_profile(expression_level, genes, expression_bins, input_forma
     df = df[df.iloc[:, 1].notna()]
     df = df.sort_values(by=df.columns[1])
     expression_level = np.array(df.iloc[:, 1])
-    if np.count_nonzero(expression_level<0)!=0 and np.count_nonzero(expression_level>=0)!=0:
+    if np.count_nonzero(expression_level < 0) != 0 and np.count_nonzero(expression_level >= 0) != 0:
         left = MI.discretize(expression_level[expression_level < 0], expression_bins // 2)
         right = MI.discretize(expression_level[expression_level >= 0], expression_bins // 2)
         right += expression_bins // 2
         expression_profile = np.concatenate((left, right))
     else:
         expression_profile = MI.discretize(expression_level[expression_level >= 0], expression_bins // 2)
+
     genes = list(df.iloc[:, 0])
     genes = [gene.split('.')[0] for gene in genes]
     if input_format and output_format and input_format != output_format:
@@ -125,3 +127,57 @@ def get_profiles(db_index_file, first_col_is_genes, db_names_file=None):
     profiles = profiles[:, genes_bool]
     db_genes = [db_genes[i] for i in range(len(db_genes)) if genes_bool[i]]
     return db_names, profiles, db_annotations, db_genes
+
+
+def dump_database(db_names, db_annotations, db_genes, db_profiles, database_name, tmp):
+    with open("{0}/{1}.ipage.pickle".format(tmp, database_name), "wb+") as f:
+        pickle.dump(db_names, f, pickle.HIGHEST_PROTOCOL)
+        pickle.dump(db_annotations, f, pickle.HIGHEST_PROTOCOL)
+        pickle.dump(db_genes, f, pickle.HIGHEST_PROTOCOL)
+    sparse_profiles = sparse.csr_matrix(db_profiles)
+    sparse.save_npz("{0}/{1}.ipage.npz".format(tmp, database_name), sparse_profiles, compressed=True)
+
+
+def load_database(database_name, tmp):
+    with open("{0}/{1}.ipage.pickle".format(tmp, database_name), 'rb') as f:
+        db_names = pickle.load(f)
+        db_annotations = pickle.load(f)
+        db_genes = pickle.load(f)
+    sparse_profiles = sparse.load_npz("{0}/{1}.ipage.npz".format(tmp, database_name))
+    db_profiles = np.array(sparse_profiles.todense())
+    return db_names, db_annotations, db_genes, db_profiles
+
+
+def sort_genes(genes, db_genes, expression_profile, db_profiles, delete_zero_genes=True):
+    intersected_genes = list(set(genes) & set(db_genes))
+    db_genes_bool = np.isin(db_genes, intersected_genes)
+    db_genes = np.array(db_genes)[db_genes_bool].tolist()
+    genes_bool = np.isin(genes, intersected_genes)
+    genes = np.array(genes)[genes_bool].tolist()
+
+    # slightly artificial maintenance of function polymorphism
+    if len(expression_profile.shape) == 2:
+        expression_profile = expression_profile.T
+    if len(db_profiles.shape) == 2:
+        db_profiles = db_profiles.T
+
+    db_profiles = db_profiles[db_genes_bool]
+    expression_profile = expression_profile[genes_bool]
+
+    indices = np.array([db_genes.index(gene) for gene in genes])
+    db_profiles = db_profiles[indices]
+
+    if len(expression_profile.shape) == 2:
+        expression_profile = expression_profile.T
+    if len(db_profiles.shape) == 2:
+        db_profiles = db_profiles.T
+
+    if delete_zero_genes:
+        non_zero_pos = np.where(db_profiles.sum(0) != 0)[0]
+        expression_profile = expression_profile[non_zero_pos]
+        db_profiles = db_profiles[:, non_zero_pos]
+        genes = [genes[i] for i in non_zero_pos]
+
+
+    return genes, expression_profile, db_profiles
+

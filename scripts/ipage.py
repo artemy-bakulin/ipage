@@ -58,8 +58,8 @@ def ipage(genes, expression_level, database_name, output_name='stdout', e_ft=Non
 
     output = body.produce_output(accepted_db_profiles, db_profiles, db_names, db_annotations, cmis, z_scores,
                         draw_bins, max_draw_output, output_name, regulator_expression)
-    if output_name == 'stdout' or output_name == 'shut':
-        return output
+    # if output_name == 'stdout' or output_name == 'shut':
+    return output
 
 
 if __name__ == '__main__':
