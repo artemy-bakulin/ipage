@@ -59,5 +59,5 @@ def test_cond_mi(expression_profile, db_profile, abundance_profile=None, express
         if vectors_over >= max_vectors_over:
             return 0, False
     cmis.append(cmi)
-    z_score = (np.sum(cmis)/len(cmis)-1)/np.std(cmis)
+    z_score = (np.average(cmis) - cmi)/(np.std(cmis) / np.sqrt(shuffles+1))
     return z_score, True

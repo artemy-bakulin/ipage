@@ -147,8 +147,8 @@ def load_database(database_name, tmp):
     db_profiles = np.array(sparse_profiles.todense())
     return db_names, db_annotations, db_genes, db_profiles
 
-
-def sort_genes(genes, db_genes, expression_profile, db_profiles, delete_zero_genes=True):
+# to be deleted
+'''def sort_genes(genes, db_genes, expression_profile, db_profiles, delete_zero_genes=True):
     intersected_genes = list(set(genes) & set(db_genes))
     db_genes_bool = np.isin(db_genes, intersected_genes)
     db_genes = np.array(db_genes)[db_genes_bool].tolist()
@@ -178,6 +178,35 @@ def sort_genes(genes, db_genes, expression_profile, db_profiles, delete_zero_gen
         db_profiles = db_profiles[:, non_zero_pos]
         genes = [genes[i] for i in non_zero_pos]
 
+    return genes, expression_profile, db_profiles'''
+
+
+def sort_genes(genes, db_genes, expression_profile, db_profiles, delete_zero_genes=True):
+    genes_not_in_db_genes = set(genes) - set(db_genes)
+    genes_not_in_genes = set(db_genes) - set(genes)
+    genes += list(genes_not_in_genes)
+    db_genes += list(genes_not_in_db_genes)
+
+    expression_profile = np.atleast_2d(expression_profile)
+    db_profiles = np.atleast_2d(db_profiles)
+
+    expression_profile_supl = np.zeros((expression_profile.shape[0], len(genes_not_in_genes)))
+    db_profiles_supl = np.zeros((db_profiles.shape[0], len(genes_not_in_db_genes)))
+    expression_profile = np.concatenate((expression_profile, expression_profile_supl), axis=1)
+    db_profiles = np.concatenate((db_profiles, db_profiles_supl), axis=1)
+
+    indices = np.array([db_genes.index(gene) for gene in genes])
+    db_profiles = db_profiles[:, indices]
+
+    if expression_profile.shape[0] == 1:
+        expression_profile = expression_profile.flatten()
+
+    if delete_zero_genes:
+        non_zero_pos = np.where(db_profiles.sum(0) != 0)[0]
+        expression_profile = expression_profile[non_zero_pos]
+        db_profiles = db_profiles[:, non_zero_pos]
+        genes = [genes[i] for i in non_zero_pos]
 
     return genes, expression_profile, db_profiles
+
 

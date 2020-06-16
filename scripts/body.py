@@ -50,7 +50,7 @@ def count_cmi_for_profiles(expression_profile, db_profiles, abundance_profile, e
 
 
 def statistical_testing(cmis, expression_profile, db_profiles, abundance_profile, expression_bins, db_bins,
-                        abundance_bins, function, p_value=0.01):
+                        abundance_bins, function, p_value=0.01, stop=True):
     indices = np.argsort(cmis)[::-1]
     rev_indices = np.argsort(indices)
     db_profiles_ = db_profiles[indices]
@@ -69,10 +69,11 @@ def statistical_testing(cmis, expression_profile, db_profiles, abundance_profile
             z_scores[i] = z_score
             accepted_db_profiles[i] = True
             false_hits = 0
-        if false_hits > 5:
+        if false_hits > 5 and stop:
             break
         i += 1
-    return accepted_db_profiles[rev_indices], z_scores[rev_indices]
+    accepted_db_profiles, z_scores = accepted_db_profiles[rev_indices], z_scores[rev_indices]
+    return accepted_db_profiles, z_scores
 
 
 def get_rbp_expression(genes, output_format, expression_profile, accepted_db_profiles, db_names, db_annotations, species, tmp):
