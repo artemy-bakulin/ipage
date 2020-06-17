@@ -34,12 +34,12 @@ def get_p_values(profile, nbins):
 
 
 def test_cond_mi(expression_profile, db_profile, abundance_profile=None, expression_bins=10, db_bins=2, abundance_bins=3,
-                 shuffles=1000, p_value=0.01, function='cmi'):
+                 shuffles=1000, alpha=0.01, function='cmi'):
     if function == 'cmi':
         cmi = MI.cond_mut_info(expression_profile, db_profile, abundance_profile, expression_bins, db_bins, abundance_bins)
     elif function == 'mi':
         cmi = MI.mut_info(expression_profile, db_profile, expression_bins, db_bins)
-    max_vectors_over = shuffles * p_value
+    max_vectors_over = shuffles * alpha
     expression_shuffled_profile = expression_profile.copy()
     vectors_over = 0
     cmis = []
@@ -58,6 +58,5 @@ def test_cond_mi(expression_profile, db_profile, abundance_profile=None, express
             vectors_over += 1
         if vectors_over >= max_vectors_over:
             return 0, False
-    cmis.append(cmi)
-    z_score = (np.average(cmis) - cmi)/(np.std(cmis) / np.sqrt(shuffles+1))
+    z_score = (cmi - np.average(cmis)) / np.std(cmis)
     return z_score, True

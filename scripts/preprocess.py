@@ -191,7 +191,9 @@ def sort_genes(genes, db_genes, expression_profile, db_profiles, delete_zero_gen
     db_profiles = np.atleast_2d(db_profiles)
 
     expression_profile_supl = np.zeros((expression_profile.shape[0], len(genes_not_in_genes)))
+    expression_profile_supl[:] = np.nan
     db_profiles_supl = np.zeros((db_profiles.shape[0], len(genes_not_in_db_genes)))
+    db_profiles_supl[:] = np.nan
     expression_profile = np.concatenate((expression_profile, expression_profile_supl), axis=1)
     db_profiles = np.concatenate((db_profiles, db_profiles_supl), axis=1)
 
@@ -202,11 +204,17 @@ def sort_genes(genes, db_genes, expression_profile, db_profiles, delete_zero_gen
         expression_profile = expression_profile.flatten()
 
     if delete_zero_genes:
-        non_zero_pos = np.where(db_profiles.sum(0) != 0)[0]
+        non_zero_pos = np.where(np.isnan(db_profiles).sum(0) == 0)[0]
+        expression_profile = expression_profile[non_zero_pos]
+        db_profiles = db_profiles[:, non_zero_pos]
+        genes = [genes[i] for i in non_zero_pos]
+
+        non_zero_pos = np.where(~np.isnan(expression_profile))[0]
         expression_profile = expression_profile[non_zero_pos]
         db_profiles = db_profiles[:, non_zero_pos]
         genes = [genes[i] for i in non_zero_pos]
 
     return genes, expression_profile, db_profiles
+
 
 

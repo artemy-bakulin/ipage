@@ -25,10 +25,9 @@ def read_expression_file(expression_file, sep='\t', column=1):
 
 def ipage(genes, expression_level, database_name, output_name='stdout', e_ft=None, db_ft=None,
           e_bins=10, freq_bins=3, species='human', draw_bins=15, max_draw_output=50, regulator=False,
-          tmp='tmp_ipage', function='cmi', p_value=0.01):
+          tmp='tmp_ipage', function='cmi', alpha=0.01, holm_bonferroni=False):
 
     db_bins = 2
-
     if output_name != 'stdout' and output_name != 'shut':
         if len(output_name.split('/')) != 1:
             output_dir = '/'.join(output_name.split('/')[:-1])
@@ -39,7 +38,6 @@ def ipage(genes, expression_level, database_name, output_name='stdout', e_ft=Non
         if not os.path.isdir(output_dir):
             os.mkdir(output_dir)
 
-
     expression_profile, db_names, db_profiles, db_annotations, abundance_profile, genes = body.process_input(
         expression_level, genes, database_name, e_ft, db_ft, e_bins, freq_bins,
         species, tmp)
@@ -47,8 +45,8 @@ def ipage(genes, expression_level, database_name, output_name='stdout', e_ft=Non
     cmis = body.count_cmi_for_profiles(expression_profile, db_profiles, abundance_profile, e_bins,
                                        db_bins, freq_bins, function)
     accepted_db_profiles, z_scores = body.statistical_testing(cmis, expression_profile, db_profiles,
-                                                              abundance_profile,
-                                                              e_bins, db_bins, freq_bins, function, p_value)
+                                                              abundance_profile, e_bins, db_bins, freq_bins,
+                                                              function, alpha, holm_bonferroni)
     if regulator:
         regulator_expression = body.get_rbp_expression(genes, db_ft, expression_profile,
                                                        accepted_db_profiles, db_names, db_annotations, species,

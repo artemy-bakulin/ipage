@@ -5,6 +5,8 @@ import preprocess
 import MI
 import numpy as np
 import pandas as pd
+from scipy.stats import norm
+from statsmodels.stats.multitest import multipletests
 
 
 def preprocess_db(database_names_file, first_col_is_genes, database_index_file, filter_redundant, min_pathway_length,
@@ -50,7 +52,7 @@ def count_cmi_for_profiles(expression_profile, db_profiles, abundance_profile, e
 
 
 def statistical_testing(cmis, expression_profile, db_profiles, abundance_profile, expression_bins, db_bins,
-                        abundance_bins, function, p_value=0.01, stop=True):
+                        abundance_bins, function, alpha=0.01, holm_bonferroni=False, stop=True):
     indices = np.argsort(cmis)[::-1]
     rev_indices = np.argsort(indices)
     db_profiles_ = db_profiles[indices]
@@ -61,17 +63,16 @@ def statistical_testing(cmis, expression_profile, db_profiles, abundance_profile
     for profile in db_profiles_:
         z_score, vector_accepted = stat_ipage.test_cond_mi(expression_profile, profile, abundance_profile,
                                                            expression_bins, db_bins, abundance_bins,
-                                                           p_value=p_value, function=function)
-        if not vector_accepted:
-            accepted_db_profiles[i] = False
-            false_hits += 1
-        else:
-            z_scores[i] = z_score
-            accepted_db_profiles[i] = True
-            false_hits = 0
-        if false_hits > 5 and stop:
-            break
+                                                           alpha=alpha, function=function)
+
+        accepted_db_profiles[i] = vector_accepted
+        z_scores[i] = z_score
         i += 1
+        false_hits = (false_hits + (not vector_accepted)) * (not vector_accepted)  # add 1 if 0, make zero if 1
+        if false_hits > 5 and stop and not holm_bonferroni:
+            break
+    if holm_bonferroni:
+        accepted_db_profiles = multipletests(norm.sf(z_scores), alpha, 'holm')[0]
     accepted_db_profiles, z_scores = accepted_db_profiles[rev_indices], z_scores[rev_indices]
     return accepted_db_profiles, z_scores
 
