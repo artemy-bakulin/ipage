@@ -27,6 +27,7 @@ def process_input(expression_level, genes, database_index_file, input_format, ou
 
     expression_profile, genes = preprocess.get_expression_profile(expression_level, genes, expression_bins,
                                                                   input_format, output_format, species, tmp)
+
     database_name = database_index_file.split('/')[-1].split('.')[0]
     db_names, db_annotations, db_genes, db_profiles = preprocess.load_database(database_name, tmp)
 
@@ -90,7 +91,7 @@ def get_rbp_expression(genes, output_format, expression_profile, accepted_db_pro
 
 
 def produce_output(accepted_db_profiles, db_profiles, db_names, db_annotations, cmis, z_scores,
-                   draw_bins, max_draw_output, output_name, rbp_expression=None):
+                   draw_bins, max_draw_output, output_name, cmap_main, cmap_reg, rbp_expression=None):
     p_values = {}
     for i in range(len(db_profiles)):
         if accepted_db_profiles[i]:
@@ -111,7 +112,7 @@ def produce_output(accepted_db_profiles, db_profiles, db_names, db_annotations, 
         rbp_expression = [rbp_expression[name] for name in p_names]
 
     if len(p_values) != 0 and output_name != 'shut':
-        heatmap.draw_heatmap(p_names, p_values, output_name, rbp_expression)
+        heatmap.draw_heatmap(p_names, p_values, output_name, rbp_expression, cmap_main, cmap_reg)
     output = pd.DataFrame(columns=['Group', 'CMI', 'Z-score', 'Regulation'])
     j = 0
     for name in up_regulated:

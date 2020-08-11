@@ -9,7 +9,8 @@ import scipy.sparse as sparse
 
 def change_accessions(ids, input_format, output_format, species, tmp):  # refseq->ensemble->entrez;
     if input_format != output_format:
-        mart_file = '%s/biomart_%s%s_%s.ipage.pickle' % (tmp, species, input_format, output_format)
+        mart_file = 'biomart_%s%s_%s.ipage.pickle' % (species, input_format, output_format)
+        mart_file = os.path.join(tmp, mart_file)
         if os.path.isfile(mart_file) and os.stat(mart_file).st_size != 0:
             with open(mart_file, 'rb') as f:
                 input_to_output = pickle.load(f)
@@ -74,7 +75,7 @@ def get_expression_profile(expression_level, genes, expression_bins, input_forma
     return expression_profile, genes
 
 
-def get_profiles(db_index_file, first_col_is_genes, db_names_file=None):
+'''def get_profiles(db_index_file, first_col_is_genes, db_names_file=None):
     with open(db_index_file) as f:
         lines = filter(None, (line.rstrip() for line in f))
         id_a = set()
@@ -126,7 +127,31 @@ def get_profiles(db_index_file, first_col_is_genes, db_names_file=None):
     genes_bool = np.sum(profiles, axis=0) != 0
     profiles = profiles[:, genes_bool]
     db_genes = [db_genes[i] for i in range(len(db_genes)) if genes_bool[i]]
-    return db_names, profiles, db_annotations, db_genes
+    return db_names, profiles, db_annotations, db_genes'''
+
+
+def get_profiles(db_index_file, first_col_is_genes, db_names_file=None):
+    df = pd.DataFrame(columns=['string'])
+    with open(db_index_file) as f:
+        for line in f:
+            els = line.rstrip().split('\t')
+            filtered_els = filter(lambda el: 'http://' not in el, els[1:])
+            df.loc[els[0]] = ','.join(filtered_els)
+    dummy_df = df.iloc[:, 0].str.get_dummies(sep=',')
+    if first_col_is_genes:
+        dummy_df = dummy_df.T
+    db_profiles = np.array(dummy_df)
+    db_names = list(dummy_df.index)
+    db_genes = list(dummy_df.columns)
+    db_genes = [el.split('.')[0] for el in db_genes]
+    if db_names_file:
+        df_annotations = pd.read_csv(db_names_file, sep='\t', header=None, index_col=0)
+        df_annotations = df_annotations.reindex(db_names)
+        db_annotations = list(df_annotations.iloc[:, 0])
+        db_annotations = [pair[0] + '; ' + pair[1] for pair in zip(db_names, db_annotations)]
+    else:
+        db_annotations = db_names
+    return db_names, db_profiles, db_annotations, db_genes
 
 
 def dump_database(db_names, db_annotations, db_genes, db_profiles, database_name, tmp):
@@ -146,6 +171,7 @@ def load_database(database_name, tmp):
     sparse_profiles = sparse.load_npz("{0}/{1}.ipage.npz".format(tmp, database_name))
     db_profiles = np.array(sparse_profiles.todense())
     return db_names, db_annotations, db_genes, db_profiles
+
 
 # to be deleted
 '''def sort_genes(genes, db_genes, expression_profile, db_profiles, delete_zero_genes=True):
@@ -181,7 +207,8 @@ def load_database(database_name, tmp):
     return genes, expression_profile, db_profiles'''
 
 
-def sort_genes(genes, db_genes, expression_profile, db_profiles, delete_zero_genes=True):
+'''def sort_genes(genes, db_genes, expression_profile, db_profiles, delete_genes_not_in_expression=True,
+               delete_genes_not_in_db=False):
     genes_not_in_db_genes = set(genes) - set(db_genes)
     genes_not_in_genes = set(db_genes) - set(genes)
     genes += list(genes_not_in_genes)
@@ -190,10 +217,13 @@ def sort_genes(genes, db_genes, expression_profile, db_profiles, delete_zero_gen
     expression_profile = np.atleast_2d(expression_profile)
     db_profiles = np.atleast_2d(db_profiles)
 
+    nan_value = max(expression_profile.max(), db_profiles.max()) + 1
+    nan_value = 99.0
+
     expression_profile_supl = np.zeros((expression_profile.shape[0], len(genes_not_in_genes)))
-    expression_profile_supl[:] = np.nan
+    expression_profile_supl[:] = nan_value
     db_profiles_supl = np.zeros((db_profiles.shape[0], len(genes_not_in_db_genes)))
-    db_profiles_supl[:] = np.nan
+    db_profiles_supl[:] = nan_value
     expression_profile = np.concatenate((expression_profile, expression_profile_supl), axis=1)
     db_profiles = np.concatenate((db_profiles, db_profiles_supl), axis=1)
 
@@ -203,18 +233,58 @@ def sort_genes(genes, db_genes, expression_profile, db_profiles, delete_zero_gen
     if expression_profile.shape[0] == 1:
         expression_profile = expression_profile.flatten()
 
-    if delete_zero_genes:
-        non_zero_pos = np.where(np.isnan(db_profiles).sum(0) == 0)[0]
-        expression_profile = expression_profile[non_zero_pos]
-        db_profiles = db_profiles[:, non_zero_pos]
-        genes = [genes[i] for i in non_zero_pos]
+    if delete_genes_not_in_expression:
+        zero_pos = np.where(np.any((db_profiles == nan_value), axis=0))[0]
+        expression_profile = np.delete(expression_profile, zero_pos)
+        db_profiles = np.delete(db_profiles, zero_pos, axis=1)
+        genes = [genes[i] for i in range(len(genes)) if i not in zero_pos]
+    else:
+        expression_profile[expression_profile == nan_value] = 0
 
-        non_zero_pos = np.where(~np.isnan(expression_profile))[0]
-        expression_profile = expression_profile[non_zero_pos]
-        db_profiles = db_profiles[:, non_zero_pos]
-        genes = [genes[i] for i in non_zero_pos]
+    if delete_genes_not_in_db:
+        zero_pos = np.where(expression_profile == nan_value)[0]
+        expression_profile = np.delete(expression_profile, zero_pos)
+        db_profiles = np.delete(db_profiles, zero_pos, axis=1)
+        genes = [genes[i] for i in range(len(genes)) if i not in zero_pos]
+    else:
+        print('stop')
+        db_profiles[db_profiles == nan_value] = 0
+
+    return genes, expression_profile, db_profiles'''
+
+
+def sort_genes(genes, db_genes, expression_profile, db_profiles, delete_genes_not_in_expression=True,
+               delete_genes_not_in_db=False):
+    genes_not_in_db_genes = set(genes) - set(db_genes)
+    genes_not_in_genes = set(db_genes) - set(genes)
+    genes += list(genes_not_in_genes)
+    db_genes += list(genes_not_in_db_genes)
+
+    expression_profile = np.atleast_2d(expression_profile)
+    db_profiles = np.atleast_2d(db_profiles)
+
+    expression_profile_supl = np.zeros((expression_profile.shape[0], len(genes_not_in_genes)))
+    db_profiles_supl = np.zeros((db_profiles.shape[0], len(genes_not_in_db_genes)))
+    expression_profile = np.concatenate((expression_profile, expression_profile_supl), axis=1)
+    db_profiles = np.concatenate((db_profiles, db_profiles_supl), axis=1)
+
+    indices = np.array([db_genes.index(gene) for gene in genes])
+    db_profiles = db_profiles[:, indices]
+
+    if delete_genes_not_in_expression:
+        expression_profile = expression_profile[:, :-len(genes_not_in_genes)]
+        db_profiles = db_profiles[:, :-len(genes_not_in_genes)]
+        genes = genes[:-len(genes_not_in_genes)]
+        indices = indices[indices < len(genes)]
+
+    if delete_genes_not_in_db:
+        rev_indices = indices[::-1]
+        expression_profile = expression_profile[:, rev_indices][:, :-len(genes_not_in_db_genes)]
+        db_profiles = db_profiles[:, rev_indices][:, :-len(genes_not_in_db_genes)]
+        genes = [genes[i] for i in rev_indices][:-len(genes_not_in_db_genes)]
+
+    if expression_profile.shape[0] == 1:
+        expression_profile = expression_profile.flatten()
 
     return genes, expression_profile, db_profiles
-
-
 

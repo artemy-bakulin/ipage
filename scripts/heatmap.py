@@ -4,18 +4,18 @@ import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 
 
-def columnwise_heatmap(array, ax=None, expression=False, **kw):
+def columnwise_heatmap(array, ax=None, expression=False, cmap_main='RdBu_r', cmap_reg='YlOrBr', **kw):
     ax = ax or plt.gca()
     premask = np.tile(np.arange(array.shape[1]), array.shape[0]).reshape(array.shape)
     images = []
     if expression:
         col = np.ma.array(array, mask=premask != 0)
-        im = ax.imshow(col, cmap='YlOrBr', **kw)
+        im = ax.imshow(col, cmap=cmap_reg, **kw)
         images.append(im)
         col = np.ma.array(array, mask=premask == 0)
     else:
         col = np.ma.array(array, mask=premask == -1)
-    im = ax.imshow(col, cmap='RdBu_r', **kw)
+    im = ax.imshow(col, cmap=cmap_main, **kw)
     images.append(im)
     return images
 
@@ -41,7 +41,7 @@ def add_colorbar(fig, ims, n):
         cax.set_title(colorbar_names[i], fontsize=10)
 
 
-def draw_heatmap(names, values, output_name='output_ipage', expression=None):
+def draw_heatmap(names, values, output_name='output_ipage', expression=None, cmap_main='RdBu_r', cmap_reg='YlOrBr'):
 
     if type(names[0]) == str:
         df = pd.DataFrame(values, index=names)
@@ -65,7 +65,8 @@ def draw_heatmap(names, values, output_name='output_ipage', expression=None):
 
     fig, ax = plt.subplots(figsize=(figure_width, figure_height))
 
-    ims = columnwise_heatmap(df.values, ax=ax, aspect="auto", expression=bool(expression))
+    ims = columnwise_heatmap(df.values, ax=ax, aspect="auto", expression=bool(expression),
+                             cmap_main=cmap_main, cmap_reg=cmap_reg)
 
     if type(names[0]) == str:
         ax.set(xticks=np.arange(len(df.columns)), yticks=np.arange(len(df)),

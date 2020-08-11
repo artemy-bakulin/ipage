@@ -25,7 +25,7 @@ def read_expression_file(expression_file, sep='\t', column=1):
 
 def ipage(genes, expression_level, database_name, output_name='stdout', e_ft=None, db_ft=None,
           e_bins=10, freq_bins=3, species='human', draw_bins=15, max_draw_output=50, regulator=False,
-          tmp='tmp_ipage', function='cmi', alpha=0.01, holm_bonferroni=False):
+          tmp='tmp_ipage', function='cmi', alpha=0.01, holm_bonferroni=False, cmap_main='RdBu_r', cmap_reg='YlOrBr'):
 
     db_bins = 2
     if output_name != 'stdout' and output_name != 'shut':
@@ -55,7 +55,7 @@ def ipage(genes, expression_level, database_name, output_name='stdout', e_ft=Non
         regulator_expression = None
 
     output = body.produce_output(accepted_db_profiles, db_profiles, db_names, db_annotations, cmis, z_scores,
-                        draw_bins, max_draw_output, output_name, regulator_expression)
+                        draw_bins, max_draw_output, output_name, cmap_main, cmap_reg, regulator_expression)
     # if output_name == 'stdout' or output_name == 'shut':
     return output
 
