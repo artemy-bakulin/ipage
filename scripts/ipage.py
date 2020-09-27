@@ -3,15 +3,36 @@ import argparse
 import body
 import os
 import pandas as pd
+import preprocess
+import filter_db
 
 
-def preprocess(database_index_file, database_names_file=None, first_col_is_genes=True, filter_redundant=False,
-               tmp='tmp_ipage', min_pathway_length=6):
+def preprocess_db(table=None, database_index_file=None, database_names_file=None, first_col_is_genes=True,
+                  filter_redundant=False,
+                  tmp='tmp_ipage', min_pathway_length=20, database_name=None, sep='\t'):
     child_unique_genes = 0.2
+
     if not os.path.isdir(tmp):
         os.mkdir(tmp)
-    body.preprocess_db(database_names_file, first_col_is_genes, database_index_file, filter_redundant,
-                       min_pathway_length, child_unique_genes, tmp)
+
+    if table is not None:
+        db_names, db_profiles, db_annotations, db_genes = preprocess.get_profiles_from_table(table, sep=sep,
+                                                                                             first_col_is_genes=first_col_is_genes)
+    elif database_index_file is not None:
+        db_names, db_profiles, db_annotations, db_genes = preprocess.get_profiles(database_index_file,
+                                                                                  first_col_is_genes,
+                                                                                  database_names_file)
+    else:
+        print('The program should be provided with non zero input')
+        sys.exit()
+
+    if filter_redundant:
+        db_names, db_annotations, db_profiles = filter_db.non_redundancy_sort_pre(db_names, db_annotations, db_profiles,
+                                                                                  min_pathway_length,
+                                                                                  child_unique_genes)
+    if not database_name:
+        database_name = database_index_file.split('/')[-1].split('.')[0]
+    preprocess.dump_database(db_names, db_annotations, db_genes, db_profiles, database_name, tmp)
 
 
 def read_expression_file(expression_file, sep='\t', column=1):
@@ -25,8 +46,8 @@ def read_expression_file(expression_file, sep='\t', column=1):
 
 def ipage(genes, expression_level, database_name, output_name='stdout', e_ft=None, db_ft=None,
           e_bins=10, freq_bins=3, species='human', draw_bins=15, max_draw_output=50, regulator=False,
-          tmp='tmp_ipage', function='cmi', alpha=0.01, holm_bonferroni=False, cmap_main='RdBu_r', cmap_reg='YlOrBr'):
-
+          tmp='tmp_ipage', function='cmi', alpha=0.01, holm_bonferroni=False, cmap_main='RdBu_r', cmap_reg='YlOrBr',
+          export_heatmap=False, symmetric_expression=True):
     db_bins = 2
     if output_name != 'stdout' and output_name != 'shut':
         if len(output_name.split('/')) != 1:
@@ -40,7 +61,7 @@ def ipage(genes, expression_level, database_name, output_name='stdout', e_ft=Non
 
     expression_profile, db_names, db_profiles, db_annotations, abundance_profile, genes = body.process_input(
         expression_level, genes, database_name, e_ft, db_ft, e_bins, freq_bins,
-        species, tmp)
+        species, tmp, symmetric_expression)
 
     cmis = body.count_cmi_for_profiles(expression_profile, db_profiles, abundance_profile, e_bins,
                                        db_bins, freq_bins, function)
@@ -55,7 +76,8 @@ def ipage(genes, expression_level, database_name, output_name='stdout', e_ft=Non
         regulator_expression = None
 
     output = body.produce_output(accepted_db_profiles, db_profiles, db_names, db_annotations, cmis, z_scores,
-                        draw_bins, max_draw_output, output_name, cmap_main, cmap_reg, regulator_expression)
+                                 draw_bins, max_draw_output, output_name, cmap_main, cmap_reg, regulator_expression,
+                                 export_heatmap)
     # if output_name == 'stdout' or output_name == 'shut':
     return output
 
@@ -153,6 +175,6 @@ if __name__ == '__main__':
 
             genes, expression_level = read_expression_file(expression_file, sep, expression_column)
 
-            ipage(expression_level, genes, database_index_file, output_name, input_format, output_format, expression_bins,
+            ipage(expression_level, genes, database_index_file, output_name, input_format, output_format,
+                  expression_bins,
                   abundance_bins, species, draw_bins, max_draw_output, regulator, tmp)
-

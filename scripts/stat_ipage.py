@@ -34,7 +34,7 @@ def get_p_values(profile, nbins):
 
 
 def test_cond_mi(expression_profile, db_profile, abundance_profile=None, expression_bins=10, db_bins=2, abundance_bins=3,
-                 shuffles=1000, alpha=0.01, function='cmi'):
+                 shuffles=1000, holm_bonferroni=False, alpha=0.01, function='cmi'):
     if function == 'cmi':
         cmi = MI.cond_mut_info(expression_profile, db_profile, abundance_profile, expression_bins, db_bins, abundance_bins)
     elif function == 'mi':
@@ -56,7 +56,10 @@ def test_cond_mi(expression_profile, db_profile, abundance_profile=None, express
         cmis.append(new_cmi)
         if cmi <= new_cmi:
             vectors_over += 1
-        if vectors_over >= max_vectors_over:
-            return 0, False
+        if vectors_over >= max_vectors_over and not holm_bonferroni:
+            z_score = 0
+            passed_thr = False
+            return z_score, passed_thr
     z_score = (cmi - np.average(cmis)) / np.std(cmis)
-    return z_score, True
+    passed_thr = True
+    return z_score, passed_thr

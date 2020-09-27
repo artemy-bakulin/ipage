@@ -43,7 +43,7 @@ def add_colorbar(fig, ims, n):
 
 def draw_heatmap(names, values, output_name='output_ipage', expression=None, cmap_main='RdBu_r', cmap_reg='YlOrBr'):
 
-    if type(names[0]) == str:
+    if type(names[0]) != list:
         df = pd.DataFrame(values, index=names)
     else:
         df = pd.DataFrame(values, index=names[0], columns=names[1])
