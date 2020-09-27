@@ -7,7 +7,6 @@ import pandas as pd
 from scipy.stats import norm
 from statsmodels.stats.multitest import multipletests
 import pickle
-from tqdm.notebook import tqdm
 
 
 def process_input(expression_level, genes, database_index_file, input_format, output_format, expression_bins,
@@ -49,7 +48,7 @@ def statistical_testing(cmis, expression_profile, db_profiles, abundance_profile
     accepted_db_profiles = np.array([False] * len(db_profiles))
     z_scores = np.zeros(len(db_profiles), dtype=float)
     false_hits = 0
-    for i in tqdm(range(db_profiles.shape[0])):
+    for i in range(db_profiles.shape[0]):
         z_score, passed_thr = stat_ipage.test_cond_mi(expression_profile, db_profiles[i], abundance_profile,
                                                       expression_bins, db_bins, abundance_bins,
                                                       holm_bonferroni=holm_bonferroni, alpha=alpha, function=function)
