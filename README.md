@@ -1,195 +1,213 @@
-# iPAGE
+# iPAGE-2
 
-We offer you iPAGE.
+iPAGE-2 is a tool for the pathway-level analysis of differential gene expression, which implements the ideas of
+information theory.
 
-iPAGE abbreviation stands for information-theoretic pathway analysis of gene expression.
+Introduction to the pathway-level analysis requires the clarification of the thesaurus used in the field.
+So, first, the term **pathway** – by this word we mean practically any set of genes: a metabolic chain,
+genes regulated by a transcription factor, targets of an RNA binding protein. There are various sources of **pathways'
+annotations**, files that contain the description of which genes to which pathways belong to. We provide a few preprocessed
+pathways' annotations with our package but one should feel free to use annotation files of their own.
+The predictions of iPAGE are based on the differential expression: the assessment of the difference of genes' expression
+distributions between two conditions. Differential expression should be precomputed before using iPAGE (e.g. by Deseq2).
+Virtually any metric can be used with iPAGE as it implements non-parametric testing therefore its output should be robust
+to mathematical transformation of input data but we recommend that differential expression is computed as a p-value of the significance of
+transcript's abundance change subtracted from one taken as a positive value if the abundance increases and negative if
+vice versa ('sign(fold_change) * (1-p)'). Further we refer to the vector of differential expression values as the
+**differential expression profile**.
 
-It is a tool well-suited for identifying which regulons best explain gene expression. 
+## Download and installation
 
-For example, you can tell which pathways are upregulated or downregulated in the sample, which changes take place between the samples. 
-Or say, based on eCLIP data, judge which RNA binding proteins drive cell behavior.
+Currently iPAGE is accessible from this github page. The package can be cloned to local environment using a link:
+"https://github.com/artemy-bakulin/ipage.git".
 
-**Interface**
+Installation of dependency packages may also be required "pybiomart", "statsmodels", "scipy", "argparse", "numpy", "pandas"
+(use pip or conda for this purpose).
 
-iPAGE provides two types of interface: as a command line program and as a python module.
+## The typical session
 
-Either of modes would run with the same version of program.
+So having cloned iPAGE-2, installed all dependencies and computed differential expression, one could immediately go ahead
+exploring pathways' regulation.
 
-**Requirements**
+iPAGE-2 can be used both as a python package and as a command line tool. Here we explore the typical python session (also consult 'test/test_session.ipynb').
 
-Python version 3 is required.
+Start with inserting iPAGE to your path.
 
-The following packages should be installed to run iPAGE:
-
-numpy, pandas, numba, pybiomart, scipy, pickle
-
-
-## Workflow
-
-To run iPAGE, you need to provide it with at least two things: information about gene expression and the description of regulons.
-
-We suggest you measure gene expression between samples as sign(average of sample 2 - average of sample 1)*(1-p),
-where p is a value calculated with Student's test for each gene between samples.
-
-Though it is open for knowledgeable experiments with data.
-
-iPAGE is run in two steps: preprocessing and calculations. 
-
-Further we will explore its usage. Even if you intend to use it only as a python module we advice you to read command line utility description. 
-
-### Command line utility 
-
-**Preprocess**
-
-Preprocess is denoted with "**-preprocess**" tag.
-At this step the programme processes the database converting it into vectorized form.
-The output is stored in a pickle file so that it could be used many times for further calculations.
-
-Preprocess requires following parameters:
-
-**-i** database index file
-
-Strictly required. It is a file which should represent a tab delimited table with either gene name in the first column and gene sets' names in other or in reverse. The order of which is specified by "-g".
-
-**-g** database order
-
-If specified, the first column is assumed to be genes and other regulons.
-If not, the first column is assumed to be regulons and other genes.
-
-Do pay attention to it, it is a common source of mistakes.
-
-**-n** database names file
-
-Optional, though it is common of pathway databases to have a file with annotation of pathways. It should be a tab delimited table with first column being  regulon name and the second its annotation.
-
-**-f** filter database
-
-Optional, a lot of gene databases have a hierarchical structure, having both children' and parents' genes' sets.  The built-in filter function deletes those redundant pathways which do not have any additional information to other pathways.
-The programme is run with the following parameters:
-
-**Calculations**
-
-Does not need to be specified by any tag. 
-This step performs calculations of conditional mutual information and can be run only if the previous step was successfully completed.
-
-Calculations require following parameters:
-
-**-e** expression file
-
-Strictly required. It is a file which represents a table where the first column being genes and others are values of transcription. 
-
-**-e_sep** expression file separator
-
-Specifies separator in expression file, the default is tab.
-
-**-e_col** number of column with values
-
-Specifies number of column with required stability values (0-based numbering), by default 1. 
-
-In case of numerous columns pass them with a comma, for example '1,2,10,15'.
-
-If all columns are needed specify 'all'.
-
-**-i** database index file
-
-Should be specified once more.
-
-**-db_ft** database format
-
-Takes ensg, enst, refseq, entrez, gene_symbol.
-Should be specified if database's and expression's file use different accessions. 
-Only human and mouse  ensemble, refseq and entrez are supported. 
-
-**-e_ft** expression file format
-
-Takes ensg, enst, refseq, entrez, gene_symbol.
-Should be specified if database's and expression's file use different accessions. 
-Only human and mouse ensemble, refseq and entrez are supported. 
-
-**-sp** species
-
-Takes human, mouse. By default human.
-Should be specified if database's and expression's file use different accessions.
-Needed to correctly change accessions. 
-
-**-e_bins** expression bins
-
-Specifies the number of bins into which the expression is discretized. The default is 10. 
-
-**-s_bins** sum_bins
-
-Specifies the number of bins into which the sum profile is discretized. The default is 3. 
-
-**-h_bins** bins in heatmap
-
-Specifies the number of bins in heatmap graphical output. The default is 15. 
-
-**-max_draw** hits in  graphical output
-
-Specifies the maximum number of hits in graphical output. The default is 50.
-
-**-regulator**
-
-Can be added if regulons are named with gene symbols after another gene. Adds an additional column with expression of the regulator to heatmap.
-
-**-o** output
-
-Specifies output name. Output will be added to the directory with this name. 
-The directory will be created if it doesn't exist. 
-By default output  will be added to the directory './output_ipage'
-
-**To test** the program run the following commands:
-
-python3.6 scripts/ipage.py -preprocess -i test/human_ensembl_index.txt -g -n test/human_ensembl_names.txt -f
-
-python3.6 scripts/ipage.py -e test/bladder.exp -e_sep $'\t' -i test/human_ensembl_index.txt -db_ft ensg -e_ft refseq
-
-### Python module
-
-As a python module our program is to be imported with:
-
-import ipage
-
-However, before that you need to specify path to ipage/scripts folder.
-
-We suggest a session run-time solution:
-
+```
 import sys
+sys.path.insert(1,'direction/to/ipage/scripts/')
+import ipage
+```
 
-sys.path.insert(1,'ipage/scripts/')
+Then download differential expression data in any convenient manner, for example:
 
-Then the workflow consists of running these functions:
+```
+ de_genes, de_profile = ipage.read_expression_file('expression_file.csv', sep=',')
+```
+'de_genes', 'de_profile' are two lists, numpy arrays or pandas series.
 
-preprocess(database_index_file, database_names_file=None, first_col_is_genes=True, filter_redundant=False,
- tmp='tmp_ipage', min_pathway_length=6)
+And finally iPAGE command can be executed.
 
-The call of the following function can be omitted, if you already have lists of genes and their respective expression values.
+```
+annotation_name = 'msig_db'
+de_gene_format = 'ensg'
+annotation_gene_format = 'gs'
+annotation_dir = 'direction/to/tmp_ipage'
+ipage.ipage(de_genes, de_profile, annotation_name, output_name='test', de_ft=de_gene_format, ann_ft=annotation_gene_format, annotation_dir=annotation_dir)
+```
+The program creates two output files: a tab-delimited table with all significant hits ('test/test.csv') and a heatmap
+with top hits ('test/test.jpg').
 
-genes, expression_level = read_expression_file(expression_file, sep='\t', column=1)
+<img src="test.jpg" width="400">
 
-ipage_output = ipage(genes, expression_level, database_name, output_name='stdout', e_format=None, db_format=None,
-          expression_bins=10, abundance_bins=3, species='human', draw_bins=15, max_draw_output=50, regulator=False,
-          tmp='tmp_ipage')
+## A comment on the analysis of RBPs
 
-Function draws a heatmap and returns a dataframe with information about significantly deregulated regulons.
-
-Note: by default the output is 'stdout' which means that it isn't saved.
-
-**Clearance**
-
-Each time iPAGE runs it creates a temporary folder (tmp_ipage, though, its name can be overwritten). 
-It contains information which can be used in later session and save time. 
-Consider keeping it.
-
-
-**The output**
-
-The output consists of two files:
-
-1)The table of significant pathways with CMI and z-score.
-
-2)The heatmap with top hits.
-
-<img src="bladder.jpg" width="400">
+iPAGE can also be used for the analysis of RBPs' deregulation. Though in this case not differential expression but differential stability should be used.
+We advise the use of REMBRANDTS (https://github.com/csglab/REMBRANDTS) package to calculate genes' stability.
+Then for each gene t test (z test) should be used to calculate the p values. Differential stability should be computed as
+(1 - p.value) * sign_of_stability_change.
+This package provides RBP regulons annotation: 'hybrid_CLIP'.
 
 
+
+## Functions' specification
+
+ipage.ipage(de_genes, de_profile, annotation_name, annotation_dir='annotation_dir', output_name='stdout',
+          de_ft=None, ann_ft=None, species='human', symmetric_expression=True,
+          de_bins=10, a_bins=3, function='cmi', alpha=0.01, holm_bonferroni=False,
+          max_draw_output=20, export_heatmap=False, heatmap_bins=15,
+          regulator=False, cmap_main='RdBu_r', cmap_reg='YlOrBr')
+
+
+This function takes gene expression data and discovers significantly deregulated pathways.
+It produces a table and a heatmap.
+
+Parameters:
+
+	de_genes : list, pd.Series, np.array
+				List of genes in expression profile.
+
+	de_profile : list, pd.Series, np.array
+				List of DE values
+
+	annotation_name : str
+				Name of the pathways' database
+				(Should be preprocessed before launch with ipage.preprocess_db)
+
+	output_name : str
+				Name of the output.
+				If provided "stdout", the output is directed to stdout
+
+	de_ft : str
+				Gene accession type in expression profile
+
+	ann_ft : str
+				Gene accession type in annotation
+
+	de_bins: int
+				The number of bins by which expression is discretized
+
+	a_bins: int
+				The number of bins by which gene abundance is discretized
+
+	species: str
+				Species ('human'/'mouse') which genes are analyzed.
+				Should be specified if annotation's and differential expression's file use different accessions.
+
+	heatmap_bins: int
+				Number of columns on a heatmap.
+
+	max_heatmap_rows: int
+				Number of rows on a heatmap.
+
+	regulator: bool
+				Can be added if regulons are named with gene symbols after another gene.
+				Adds an additional column with expression of the regulator to heatmap.
+
+	annotation_dir: str
+				The folder where gene annotations and other intersession files are stored.
+
+	function: str
+				The function which iPAGE uses ('mi' for mutual information, 'cmi for conditional mutual information').
+				Conditional mutual information is recommended for biased set annotations.
+
+	alpha: float
+				The threshold for the p-value.
+
+	holm_bonferroni: bool
+				Specifies if Holm-Bonferroni correction should be used or not.
+
+	cmap_main: str
+				Colormap from matplotlib collection to be used on heatmap.
+
+	cmap_reg: str
+				Colormap from matplotlib collection to be used on heatmap in the expression column.
+
+	export_heatmap: bool
+				If specified exports heatmap data in pickle format.
+
+
+	symmetric_expression: bool
+				If expression is restricted and symmetrical around zero.
+
+
+ipage.process_annotation(annotation_table=None, sep='\t',
+                annotation_index_file=None, annotation_names_file=None, first_col_is_genes=True,
+                filter_redundant=False, child_unique_genes=0.2, min_pathway_length=20,
+                annotation_dir='annotation_dir', annotation_name=None)
+
+    This function processes annotation files to the compatible with iPAGE form.
+    It is common that annotation files are formatted either as a binary table (where rows are genes and columns are pathways,
+    at in each cell of this table there is either 1 or 0 if gene belongs to this pathway or not) or a file where on each line
+    a pathway and its corresponding genes are listed separated by delimeter ("index format"). "ipage.process_annotation" works with both formats.
+
+Parameters:
+
+    annotation_table: str
+                Name of the annotation file in binary table format.
+                Either annotation_table or annotation_index_file should be specified.
+
+    sep: str
+                Separator in the annotation_table file.
+
+    annotation_index_file: str
+                Name of the annotation file in the index format.
+                Either annotation_table or annotation_index_file should be specified.
+
+    annotation_names_file: str
+                Sometimes there is a file with description of pathways names in the annotation_index_file, this parameter
+                sets the name of this file. Should be specified only if annotation_index_file is specified but it also may be omitted.
+
+    first_col_is_genes: bool
+                annotation_index_file may be formatted so that the first element in each row is a gene or that it is a pathway name,
+                the parameter specifies this format issue.
+
+    filter_redundant: bool
+                It is not unusual of pathways annotation to contain multiple almost identical entries,
+                this parameter specifies whether they should be sorted.
+
+    min_pathway_length: int
+                The parameter specifies the minimal pathway length.
+
+    annotation_dir: str
+                Specifies the directory where the processed annotations are stored.
+
+    annotation_name: str
+                Specifies the name of the processed annotations.
+
+ipage.read_expression_file(expression_file, sep='\t', id_column=0, de_column=1)
+    This function reads differential expression file.
+
+Parameters:
+
+    expression_file: str
+               Specifies the name of the expression file.
+
+    sep: str
+                Specifies the file's separator.str
+
+    id_column: int
+                Specifies gene id column's number in file.
+
+    de_column: int
+                Specifies differential expression column's number in file.

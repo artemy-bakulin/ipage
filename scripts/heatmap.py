@@ -87,3 +87,4 @@ def draw_heatmap(names, values, output_name='output_ipage', expression=None, cma
         plt.show(block=False)
     else:
         plt.savefig('%s.jpg' % output_name, bbox_inches='tight')
+        plt.close()

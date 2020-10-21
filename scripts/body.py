@@ -8,6 +8,21 @@ from scipy.stats import norm
 from statsmodels.stats.multitest import multipletests
 import pickle
 
+# A number of variables in ipage.py were renamed, which was not done in other files.
+# expression_level -> de_profile
+# expression_profile -> de_profile_discr
+# database_name -> annotation_name
+# db_names -> ann_names
+# db_profiles -> ann_profiles
+# db_annotations -> ann_annotations
+# e_ft -> de_ft
+# db_ft -> ann_ft
+# tmp -> annotation_dir
+# freq_bins -> a_bins
+# e_bins -> de_bins
+# draw_bins -> heatmap_bins
+# max_draw_output -> max_heatmap_rows
+
 
 def process_input(expression_level, genes, database_index_file, input_format, output_format, expression_bins,
                   abundance_bins, species, tmp, symmetric_expression):
@@ -98,6 +113,7 @@ def produce_output(accepted_db_profiles, db_profiles, db_names, db_annotations, 
 
     if export_heatmap:
         with open(output_name + '_heatmap.pickle', "wb+") as f:
+            pickle.dump(p_names, f, pickle.HIGHEST_PROTOCOL)
             pickle.dump(p_values, f, pickle.HIGHEST_PROTOCOL)
             pickle.dump(rbp_expression, f, pickle.HIGHEST_PROTOCOL)
 
@@ -114,5 +130,5 @@ def produce_output(accepted_db_profiles, db_profiles, db_names, db_annotations, 
         output.loc[j] = [db_names[i], cmis[i], z_scores[i], 'DOWN']
         j += 1
     if output_name != 'stdout' and output_name != 'shut':
-        output.to_csv(output_name + '.out', index=False, sep='\t')
+        output.to_csv(output_name + '.out.tsv', index=False, sep='\t')
     return output
