@@ -102,10 +102,12 @@ Parameters:
 				If provided "stdout", the output is directed to stdout
 
 	de_ft : str
-				Gene accession type in expression profile
+				Gene accession type in expression profile.
+				Available accessions: ensg, enst, refseq, entrez, gs (gene symbol)
 
 	ann_ft : str
 				Gene accession type in annotation
+				Available accessions: ensg, enst, refseq, entrez, gs (gene symbol)
 
 	de_bins: int
 				The number of bins by which expression is discretized
