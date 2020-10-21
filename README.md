@@ -58,7 +58,7 @@ ipage.ipage(de_genes, de_profile, annotation_name, output_name='test', de_ft=de_
 The program creates two output files: a tab-delimited table with all significant hits ('test/test.csv') and a heatmap
 with top hits ('test/test.jpg').
 
-<img src="test.jpg" width="400">
+<img src="test/test.jpg" width="400">
 
 ## A comment on the analysis of RBPs
 
@@ -72,12 +72,15 @@ This package provides RBP regulons annotation: 'hybrid_CLIP'.
 
 ## Functions' specification
 
+### ipage.ipage
+
+```
 ipage.ipage(de_genes, de_profile, annotation_name, annotation_dir='annotation_dir', output_name='stdout',
           de_ft=None, ann_ft=None, species='human', symmetric_expression=True,
           de_bins=10, a_bins=3, function='cmi', alpha=0.01, holm_bonferroni=False,
           max_draw_output=20, export_heatmap=False, heatmap_bins=15,
           regulator=False, cmap_main='RdBu_r', cmap_reg='YlOrBr')
-
+```
 
 This function takes gene expression data and discovers significantly deregulated pathways.
 It produces a table and a heatmap.
@@ -150,16 +153,18 @@ Parameters:
 	symmetric_expression: bool
 				If expression is restricted and symmetrical around zero.
 
-
+```
+### ipage.process_annotation
 ipage.process_annotation(annotation_table=None, sep='\t',
                 annotation_index_file=None, annotation_names_file=None, first_col_is_genes=True,
                 filter_redundant=False, child_unique_genes=0.2, min_pathway_length=20,
                 annotation_dir='annotation_dir', annotation_name=None)
+```
 
-    This function processes annotation files to the compatible with iPAGE form.
-    It is common that annotation files are formatted either as a binary table (where rows are genes and columns are pathways,
-    at in each cell of this table there is either 1 or 0 if gene belongs to this pathway or not) or a file where on each line
-    a pathway and its corresponding genes are listed separated by delimeter ("index format"). "ipage.process_annotation" works with both formats.
+This function processes annotation files to the compatible with iPAGE form.
+It is common that annotation files are formatted either as a binary table (where rows are genes and columns are pathways,
+at in each cell of this table there is either 1 or 0 if gene belongs to this pathway or not) or a file where on each line
+a pathway and its corresponding genes are listed separated by delimeter ("index format"). "ipage.process_annotation" works with both formats.
 
 Parameters:
 
@@ -195,8 +200,11 @@ Parameters:
     annotation_name: str
                 Specifies the name of the processed annotations.
 
+### ipage.read_expression_file
+```
 ipage.read_expression_file(expression_file, sep='\t', id_column=0, de_column=1)
     This function reads differential expression file.
+```
 
 Parameters:
 
