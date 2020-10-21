@@ -153,8 +153,9 @@ Parameters:
 	symmetric_expression: bool
 				If expression is restricted and symmetrical around zero.
 
-```
 ### ipage.process_annotation
+
+```
 ipage.process_annotation(annotation_table=None, sep='\t',
                 annotation_index_file=None, annotation_names_file=None, first_col_is_genes=True,
                 filter_redundant=False, child_unique_genes=0.2, min_pathway_length=20,
@@ -203,8 +204,8 @@ Parameters:
 ### ipage.read_expression_file
 ```
 ipage.read_expression_file(expression_file, sep='\t', id_column=0, de_column=1)
-    This function reads differential expression file.
 ```
+This function reads differential expression file.
 
 Parameters:
 
