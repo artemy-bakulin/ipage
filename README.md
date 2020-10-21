@@ -4,11 +4,13 @@ iPAGE-2 is a tool for the pathway-level analysis of differential gene expression
 information theory.
 
 Introduction to the pathway-level analysis requires the clarification of the thesaurus used in the field.
+
 So, first, the term **pathway** – by this word we mean practically any set of genes: a metabolic chain,
 genes regulated by a transcription factor, targets of an RNA binding protein. There are various sources of **pathways'
 annotations**, files that contain the description of which genes to which pathways belong to. We provide a few preprocessed
 pathways' annotations with our package but one should feel free to use annotation files of their own.
-The predictions of iPAGE are based on the differential expression: the assessment of the difference of genes' expression
+
+The predictions of iPAGE are based on the **differential expression**: the assessment of the difference of genes' expression
 distributions between two conditions. Differential expression should be precomputed before using iPAGE (e.g. by Deseq2).
 Virtually any metric can be used with iPAGE as it implements non-parametric testing therefore its output should be robust
 to mathematical transformation of input data but we recommend that differential expression is computed as a p-value of the significance of
