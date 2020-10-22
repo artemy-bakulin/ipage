@@ -51,7 +51,7 @@ Then download differential expression data in any convenient manner, for example
 And finally iPAGE command can be executed.
 
 ```
-annotation_name = 'msig_db'
+annotation_name = 'msig_db_gs'
 de_gene_format = 'ensg'
 annotation_gene_format = 'gs'
 annotation_dir = 'direction/to/tmp_ipage'
@@ -224,3 +224,5 @@ Parameters:
 
     de_column: int
                 Specifies differential expression column's number in file.
+
+
