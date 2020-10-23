@@ -43,7 +43,7 @@ def add_colorbar(fig, ims, n):
         cax.set_title(colorbar_names[i], fontsize=10)
 
 
-def draw_heatmap(names, values, output_name='output_ipage', expression=None, cmap_main='RdBu_r', cmap_reg='Reds_r'):
+def draw_heatmap(names, values, output_name='output_ipage', expression=None, cmap_main='RdBu_r', cmap_reg='RdBu_r'):
 
     if type(names[0]) != list:
         df = pd.DataFrame(values, index=names)

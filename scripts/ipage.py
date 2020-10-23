@@ -48,7 +48,7 @@ def ipage(de_genes, de_profile, annotation_name, annotation_dir='annotation_dir'
           de_ft=None, ann_ft=None, species='human', symmetric_expression=True,
           de_bins=10, a_bins=3, function='cmi', alpha=0.01, holm_bonferroni=False,
           max_heatmap_rows=20, export_heatmap=False, heatmap_bins=15,
-          regulator=False, cmap_main='RdBu_r', cmap_reg='Reds_r'):
+          regulator=False, cmap_main='RdBu_r', cmap_reg='RdBu_r'):
 
     db_bins = 2
     if output_name != 'stdout' and output_name != 'shut':
