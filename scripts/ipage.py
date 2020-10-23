@@ -48,7 +48,7 @@ def ipage(de_genes, de_profile, annotation_name, annotation_dir='annotation_dir'
           de_ft=None, ann_ft=None, species='human', symmetric_expression=True,
           de_bins=10, a_bins=3, function='cmi', alpha=0.01, holm_bonferroni=False,
           max_heatmap_rows=20, export_heatmap=False, heatmap_bins=15,
-          regulator=False, cmap_main='RdBu_r', cmap_reg='YlOrBr'):
+          regulator=False, cmap_main='RdBu_r', cmap_reg='Reds_r'):
 
     db_bins = 2
     if output_name != 'stdout' and output_name != 'shut':
@@ -71,7 +71,7 @@ def ipage(de_genes, de_profile, annotation_name, annotation_dir='annotation_dir'
                                                                abundance_profile, de_bins, db_bins, a_bins,
                                                                function, alpha, holm_bonferroni)
     if regulator:
-        regulator_expression = body.get_rbp_expression(genes, ann_ft, de_profile_discr,
+        regulator_expression = body.get_rbp_expression(genes, ann_ft, de_profile,
                                                        accepted_ann_profiles, ann_names, ann_annotations, species,
                                                        annotation_dir)
     else:

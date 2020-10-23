@@ -84,7 +84,7 @@ def get_rbp_expression(genes, output_format, expression_profile, accepted_db_pro
     rbp_annotations = [db_annotations[i] for i in range(len(db_names)) if accepted_db_profiles[i]]
 
     genes_symbols = preprocess.change_accessions(genes, output_format, 'gs', species, tmp)
-    rbp_expression = dict(zip(rbp_annotations,
+    rbp_expression = dict(zip([rbp_annotations[i] for i in range(len(rbp_names)) if rbp_names[i] in genes_symbols],
                               [expression_profile[genes_symbols.index(name)] for name in rbp_names
                                if name in genes_symbols]))
     rbp_expression.update({el: np.nan for el in rbp_annotations if el not in rbp_expression})
