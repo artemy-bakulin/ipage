@@ -32,10 +32,10 @@ def add_colorbar(fig, ims, n):
         colorbar_names = ['']
         colorbar_images = []
     elif n == 1:
-        colorbar_names = ['genes']
+        colorbar_names = ['Regulon\'s \n enrichment']
         colorbar_images = [-1]
     elif n == 2:
-        colorbar_names = ['Regulator', 'Genes']
+        colorbar_names = ['Regulator\'s \n expression', 'Regulon\'s \n enrichment']
         colorbar_images = [0, 1]
     for i in colorbar_images:
         cax = fig.add_subplot(gs[i // cols, i % cols])
@@ -73,11 +73,14 @@ def draw_heatmap(names, values, output_name='output_ipage', expression=None, cma
     ims = columnwise_heatmap(df.values, ax=ax, aspect="auto", expression=bool(expression),
                              cmap_main=cmap_main, cmap_reg=cmap_reg)
     if expression:
-        ax[0].set(xticks=[], yticks=np.arange(len(df)), yticklabels=df.index)
-        ax[1].set(xticks=[], yticks=[])
+        ax[0].set(xticks=[], yticks=np.arange(len(df)), yticklabels=df.index, xlabel='Regulator')
+        ax[0].xaxis.set_label_position('top')
+        ax[1].set(xticks=[], yticks=[], xlabel='Regulon')
+        ax[1].xaxis.set_label_position('top')
     else:
 
-        ax.set(xticks=[], yticks=np.arange(len(df)), yticklabels=df.index)
+        ax.set(xticks=[], yticks=np.arange(len(df)), yticklabels=df.index, xlabel='Regulon')
+        ax.xaxis.set_label_position('top')
         plt.xticks(rotation=90)
 
 

@@ -98,15 +98,23 @@ def produce_output(accepted_db_profiles, db_profiles, db_names, db_annotations, 
         if accepted_db_profiles[i]:
             p_values[db_annotations[i]] = stat_ipage.get_p_values(db_profiles[i], draw_bins)
     up_regulated_func = lambda x: sum(p_values[x][:len(p_values[x]) // 2]) <= sum(p_values[x][len(p_values[x]) // 2:])
-    down_regulated_func = lambda x: sum(p_values[x][:len(p_values[x]) // 2]) >= sum(p_values[x][len(p_values[x]) // 2:])
+    down_regulated_func = lambda x: sum(p_values[x][:len(p_values[x]) // 2]) > sum(p_values[x][len(p_values[x]) // 2:])
     order_to_cmi = lambda x: cmis[db_annotations.index(x)]
+    max_draw_output = min(max_draw_output, len(p_values))
     up_regulated = sorted(filter(up_regulated_func, p_values), key=order_to_cmi, reverse=True)
-    up_regulated_portion = up_regulated[:max_draw_output // 2]
     down_regulated = sorted(filter(down_regulated_func, p_values), key=order_to_cmi, reverse=True)
-    down_regulated_portion = down_regulated[:max_draw_output // 2]
-    p_names = up_regulated_portion + down_regulated_portion
+
+    max_draw_output = min(max_draw_output, len(p_values))
+    if max_draw_output // 2 >= len(up_regulated):
+        p_names = up_regulated + down_regulated[: max_draw_output - len(up_regulated)]
+    else:
+        p_names = up_regulated[: max_draw_output - len(down_regulated)] + down_regulated
+
+    print(len(p_names), len(up_regulated + down_regulated))
+
     for i in range(draw_bins-2):
         p_names = sorted(p_names, key=lambda x: sum(p_values[x][i:i+3]), reverse=True)
+
     p_values = [p_values[name] for name in p_names]
     if rbp_expression:
         rbp_expression = [rbp_expression[name] for name in p_names]
