@@ -107,10 +107,10 @@ def produce_output(accepted_db_profiles, db_profiles, db_names, db_annotations, 
     max_draw_output = min(max_draw_output, len(p_values))
     if max_draw_output // 2 >= len(up_regulated):
         p_names = up_regulated + down_regulated[: max_draw_output - len(up_regulated)]
-    else:
+    elif max_draw_output // 2 >= len(down_regulated):
         p_names = up_regulated[: max_draw_output - len(down_regulated)] + down_regulated
-
-    print(len(p_names), len(up_regulated + down_regulated))
+    else:
+        p_names = up_regulated[:max_draw_output//2] + down_regulated[:max_draw_output//2]
 
     for i in range(draw_bins-2):
         p_names = sorted(p_names, key=lambda x: sum(p_values[x][i:i+3]), reverse=True)
