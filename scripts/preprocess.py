@@ -83,6 +83,7 @@ def get_profiles_from_table(table, sep, first_col_is_genes=True):
     df = pd.read_csv(table, sep=sep, index_col=0)
     if first_col_is_genes:
         df = df.T
+    df[df != 1] = 0
     db_names, db_genes = list(df.index), list(df.columns)
     db_annotations = db_names
     db_profiles = np.array(df)

@@ -26,21 +26,21 @@ def get_difexp(anndata, column, cluster_A_name, cluster_B_name, test='nb'):
 
 
 def count_difexp_with_t_test(cells_A, cells_B):
-    sign = np.sign(cells_A.mean(axis=0)-cells_B.mean(axis=0))
-    p_values = scipy.stats.ttest_ind(cells_A,cells_B,  axis=0)[1]
-    difexp = sign*(1-p_values)
+    sign = np.sign(cells_A.mean(axis=0) - cells_B.mean(axis=0))
+    p_values = scipy.stats.ttest_ind(cells_A, cells_B, axis=0)[1]
+    difexp = sign * (1 - p_values)
     return difexp
 
 
 def count_difexp_with_u_test(cells_A, cells_B):
     n_genes = cells_A.shape[1]
-    sign = np.sign(cells_A.mean(axis=0)-cells_B.mean(axis=0))
+    sign = np.sign(cells_A.mean(axis=0) - cells_B.mean(axis=0))
     p_values = np.empty(n_genes)
     p_values[:] = np.nan
     for i in range(n_genes):
-        if not np.array_equal(np.unique(cells_A[:,i]), np.unique(cells_B[:,i])):
-            p_values[i] = scipy.stats.mannwhitneyu(cells_A[:,i],cells_B[:,i])[1]
-    difexp = sign*(1-p_values)
+        if not np.array_equal(np.unique(cells_A[:, i]), np.unique(cells_B[:, i])):
+            p_values[i] = scipy.stats.mannwhitneyu(cells_A[:, i], cells_B[:, i])[1]
+    difexp = sign * (1 - p_values)
     return difexp
 
 
@@ -49,7 +49,7 @@ def ct_response(row):
     "Calculate response observation for Cameron-Trivedi dispersion test"
     y = row['expression']
     m = row['expression_mu']
-    return ((y - m)**2 - y) / m
+    return ((y - m) ** 2 - y) / m
 
 
 def calculate_alpha(response, predictors, data):
@@ -67,7 +67,6 @@ def calculate_p_value(data):
     formula = "expression ~ cluster"
     response, predictors = dmatrices(formula, data, return_type='dataframe')
     alpha = calculate_alpha(response, predictors, data)
-    print(alpha)
     nb_results = sm.GLM(response, predictors, family=sm.families.NegativeBinomial(alpha=alpha)).fit()
     return nb_results.pvalues[1]
 
@@ -82,8 +81,6 @@ def count_difexp_with_nb_regression(cells_A, cells_B):
             pvalues[i] = calculate_p_value(df)
         except:
             pvalues[i] = np.nan
-        if (i + 1) % 1000 == 0:
-            print('%.f000 genes processed' % i)
 
     sign = np.sign(cells_A.mean(axis=0) - cells_B.mean(axis=0))
     difexp = sign * (1 - pvalues)
